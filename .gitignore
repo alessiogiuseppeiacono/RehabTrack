@@ -141,3 +141,12 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# SQLite database files
+*.db
+
+# Temporary files
+implementation_plan.md
+domanda.pdf
+domanda_output.txt
+pdf_output.txt
