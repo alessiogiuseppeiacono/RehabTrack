@@ -39,11 +39,11 @@
 ### 🔸 SVILUPPATORE B (Paziente Mobile, Moduli Hardware & Client Auth)
 *Focus: Flusso Mobile Paziente su Ionic/Angular, autenticazione frontend e integrazione moduli hardware Capacitor.*
 
-* **TASK-202 — Auth Service Client (`src/app/services/auth.service.ts`)**
-  * Chiamate HTTP di login/register, decodifica JWT, gestione ruoli e stato di autenticazione.
-* **TASK-203 — HTTP Interceptor (`src/app/http-int.interceptor.ts`)**
+* ✅ **TASK-202 — Auth Service Client (`src/app/services/auth.service.ts`)** — Completato
+  * Chiamate HTTP di login/register, decodifica JWT con atob(), gestione ruoli e stato di autenticazione.
+* ✅ **TASK-203 — HTTP Interceptor (`src/app/http-int.interceptor.ts`)** — Completato
   * Injection automatica dell'header `Authorization: Bearer <token>`, baseUrl `http://localhost:3000/api`, gestione centralizzata errore 401 con redirect a `/login`.
-* **TASK-204 & TASK-205 — Routing Guards & Pagina Login**
+* ✅ **TASK-204 & TASK-205 — Routing Guards & Pagina Login** — Completato
   * `authGuard` e `roleGuard` basati su `UrlTree`.
   * UI Login con Reactive Forms e navigazione condizionale post-login (Desktop Dashboard vs Mobile Tabs).
 * **TASK-401 — Controller & Routes Paziente (`backend/controllers/patientControllers.js`, `backend/routes/patientRoutes.js`)**
