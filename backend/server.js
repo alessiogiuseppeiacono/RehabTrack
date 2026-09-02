@@ -3,6 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
+const therapistRoutes = require('./routes/therapistRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +14,8 @@ app.use(express.json());   // Parsing body JSON
 
 // Mount delle rotte
 app.use('/api/auth', authRoutes);
-// ponytail: mount per /api/therapist e /api/patient aggiunti in Sprint 2
+app.use('/api/therapist', therapistRoutes);
+// ponytail: mount per /api/patient aggiunto in Sprint 2 Dev B
 
 // Gestione centralizzata errori (Express 5 passa qui le Promise rigettate)
 app.use((err, req, res, next) => {

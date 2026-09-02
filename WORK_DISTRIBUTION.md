@@ -22,11 +22,11 @@
 * **TASK-105 — Server Setup & Auth Routes (`backend/server.js`, `backend/routes/authRoutes.js`)** ✅ Completato
   * Configurazione Express 5, CORS (`*`), parsing JSON, gestione centralizzata errori asincroni. ✅
   * Allineamento porta `3000` e script `start`/`dev` in `package.json`. ✅
-* **TASK-301 — Modello Card & Exercise (`backend/models/cardModel.js`)**
-  * Query Promise-based per creazione schede e inserimento multiplo esercizi in transazione SQLite.
-  * Metodi `findByPatient` e `findTodayCard` con gestione timezone (`DATE('now', 'localtime')`).
-* **TASK-302 — Controller & Routes Terapista (`backend/controllers/therapistControllers.js`, `backend/routes/therapistRoutes.js`)**
-  * API per registrazione pazienti associati al terapista, recupero anagrafiche, creazione schede e storico log.
+* **TASK-301 — Modello Card & Exercise (`backend/models/cardModel.js`)** ✅ Completato
+  * Query Promise-based per creazione schede e inserimento multiplo esercizi in transazione SQLite. ✅
+  * Metodi `findByPatient` e `findTodayCard` con gestione timezone (`DATE('now', 'localtime')`). ✅
+* **TASK-302 — Controller & Routes Terapista (`backend/controllers/therapistControllers.js`, `backend/routes/therapistRoutes.js`)** ✅ Completato
+  * API per registrazione pazienti associati al terapista, recupero anagrafiche, creazione schede e storico log. ✅
 * **TASK-303 — UI Dashboard Desktop Fisioterapista**
   * Vista web desktop: tabella anagrafica pazienti, filtro di ricerca e pannello di dettaglio clinico.
 * **TASK-304 — Compositore Schede Esercizi (Desktop)**
@@ -67,7 +67,7 @@
 | Sprint | Obiettivo Sviluppatore A | Obiettivo Sviluppatore B |
 | :--- | :--- | :--- |
 | **Sprint 1 (Fondamenta)** | ✅ `TASK-103`, `TASK-104`, `TASK-105` (Auth Backend & Server) | `TASK-202`, `TASK-203`, `TASK-204`, `TASK-205` (Auth Frontend) |
-| **Sprint 2 (Business Logic)** | `TASK-301`, `TASK-302` (Card Model & Therapist API) | `TASK-401`, `TASK-402`, `TASK-403` (Patient API, Scheda & Timer) |
+| **Sprint 2 (Business Logic)** | ✅ `TASK-301`, `TASK-302` (Card Model & Therapist API) | `TASK-401`, `TASK-402`, `TASK-403` (Patient API, Scheda & Timer) |
 | **Sprint 3 (Features & Hardware)** | `TASK-303`, `TASK-304`, `TASK-305` (Desktop Dashboard & Reports) | `TASK-404`, `TASK-501/502`, `TASK-503/504` (Report Dolore, Camera, Mappa) |
 
 ---
