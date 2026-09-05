@@ -14,7 +14,7 @@ import {
 } from 'ionicons/icons';
 import { PatientService, Card, Exercise } from '../services/patient.service';
 import { TimerComponent } from '../components/timer/timer.component';
-import { SessionTimerComponent } from '../components/session-timer/session-timer.component';
+import { SessionTimerComponent, SessionReport } from '../components/session-timer/session-timer.component';
 
 @Component({
   selector: 'app-tab1',
@@ -73,11 +73,17 @@ export class Tab1Page implements OnInit {
       });
   }
 
-  // TASK-403: al termine del cronometro invia la durata della sessione al backend
-  onSessionFinished(durationSeconds: number): void {
+  // TASK-403 + TASK-404: al termine del form report invia il log completo al backend.
+  // SessionReport include duration_seconds (timer), pain_level (slider) e patient_notes (textarea).
+  onSessionFinished(report: SessionReport): void {
     if (!this.card) return;
     this.sessionLogState = 'saving';
-    this.patientService.saveSessionLog({ card_id: this.card.id, duration_seconds: durationSeconds }).subscribe({
+    this.patientService.saveSessionLog({
+      card_id: this.card.id,
+      duration_seconds: report.duration_seconds,
+      pain_level: report.pain_level,
+      patient_notes: report.patient_notes,
+    }).subscribe({
       // Zoneless: stessa forzatura della Change Detection del caricamento scheda
       next: () => {
         this.sessionLogState = 'saved';

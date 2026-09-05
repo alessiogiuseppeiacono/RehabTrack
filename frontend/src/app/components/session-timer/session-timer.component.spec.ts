@@ -1,20 +1,27 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SessionTimerComponent } from './session-timer.component';
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+// FIX: importa SessionReport — il tipo dell'@Output e' cambiato da number a SessionReport (TASK-404)
+import { SessionTimerComponent, SessionReport } from './session-timer.component';
 
 describe('SessionTimerComponent', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('emette i secondi trascorsi quando la sessione termina', () => {
+  // FIX: finish() e' stato sostituito da stopForReport() + submitReport() (TASK-404).
+  // stopForReport() ferma il timer e apre il form; submitReport() emette il SessionReport.
+  it('emette il SessionReport con i secondi trascorsi quando la sessione termina', () => {
     const component = new SessionTimerComponent();
-    let emitted: number | null = null;
-    component.finished.subscribe((s) => (emitted = s));
+    let emitted: SessionReport | null = null;
+    component.finished.subscribe((r) => (emitted = r));
 
     component.start();
     vi.advanceTimersByTime(5000);
-    component.finish();
+    component.stopForReport();   // ferma timer -> stato 'report'
+    component.submitReport();    // invia il form con i valori di default (painLevel=5, patientNotes='')
 
-    expect(emitted).toBe(5);
+    expect(emitted).not.toBeNull();
+    expect(emitted!.duration_seconds).toBe(5);
+    expect(emitted!.pain_level).toBe(5);       // default dello slider
+    expect(emitted!.patient_notes).toBe('');   // default textarea
     expect(component.state).toBe('idle');
   });
 
@@ -41,13 +48,18 @@ describe('SessionTimerComponent', () => {
     expect(component.elapsed).toBe(3);
   });
 
-  it('terminare senza tempo trascorso non emette log', () => {
+  // FIX: il guard "elapsed === 0 non emette" era in finish(); submitReport() emette sempre
+  // (il paziente ha completato il form). Il test verifica che stopForReport() su un timer
+  // mai avviato porti allo stato 'report' senza emettere nulla.
+  it('stopForReport senza timer avviato non emette log', () => {
     const component = new SessionTimerComponent();
     let emitted = false;
     component.finished.subscribe(() => (emitted = true));
 
-    component.finish();
+    component.stopForReport();   // elapsed=0, stato -> 'report', ma non emette ancora
 
     expect(emitted).toBe(false);
+    expect(component.state).toBe('report');
+    expect(component.elapsed).toBe(0);
   });
 });
