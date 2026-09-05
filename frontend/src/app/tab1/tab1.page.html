@@ -1,17 +1,105 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+    <ion-title>La Mia Scheda</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title size="large">La Mia Scheda</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <!-- Stato di caricamento -->
+  @if (loading) {
+    <div class="center-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <ion-text color="medium"><p>Caricamento scheda...</p></ion-text>
+    </div>
+  }
+
+  <!-- Errore -->
+  @if (!loading && error) {
+    <div class="center-container">
+      <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+      <ion-text color="danger"><p>{{ error }}</p></ion-text>
+    </div>
+  }
+
+  <!-- Stato vuoto (404 o scheda senza esercizi) -->
+  @if (!loading && !error && (!card || exercises.length === 0)) {
+    <div class="center-container">
+      <ion-icon name="fitness-outline" size="large" color="medium"></ion-icon>
+      <ion-text color="medium">
+        <h2>Nessuna scheda per oggi</h2>
+        <p>Il tuo fisioterapista non ha ancora assegnato esercizi per la giornata.</p>
+      </ion-text>
+    </div>
+  }
+
+  <!-- Scheda odierna con esercizi -->
+  @if (!loading && !error && card && exercises.length > 0) {
+    <ion-card class="card-header-card">
+      <ion-card-header>
+        <ion-card-title>{{ card.title }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-note>{{ exercises.length }} esercizi previsti per oggi</ion-note>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- TASK-403: cronometro di sessione con Avvia/Pausa/Termina -->
+    <ion-card class="session-timer-card">
+      <ion-card-header>
+        <ion-card-title class="session-timer-title">
+          <ion-icon name="timer-outline" class="exercise-icon"></ion-icon>
+          Timer di sessione
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <app-session-timer (finished)="onSessionFinished($event)"></app-session-timer>
+        @if (sessionLogState === 'saving') {
+          <ion-note color="medium" class="session-feedback">Salvataggio sessione...</ion-note>
+        }
+        @if (sessionLogState === 'saved') {
+          <ion-note color="success" class="session-feedback">Sessione registrata ✓</ion-note>
+        }
+        @if (sessionLogState === 'error') {
+          <ion-note color="danger" class="session-feedback">Errore nel salvataggio della sessione</ion-note>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- TASK-402: lista esercizi da svolgere -->
+    <ion-list inset="true" lines="full" class="exercise-list">
+      @for (ex of exercises; track ex.id) {
+        <ion-item>
+          <ion-icon slot="start" name="barbell-outline" class="exercise-icon"></ion-icon>
+          <ion-label>
+            <h2>{{ ex.name }}</h2>
+            <div class="chips-row">
+              <ion-chip color="primary">
+                <ion-icon name="repeat-outline"></ion-icon>
+                <ion-label>{{ ex.sets }} serie × {{ ex.reps_or_duration }}</ion-label>
+              </ion-chip>
+              <ion-chip color="tertiary">
+                <ion-icon name="timer-outline"></ion-icon>
+                <ion-label>Recupero {{ ex.rest_seconds }}s</ion-label>
+              </ion-chip>
+            </div>
+            @if (ex.rest_seconds > 0) {
+              <app-timer [durationSeconds]="ex.rest_seconds"></app-timer>
+            }
+            @if (ex.posture_notes) {
+              <div class="posture-notes">
+                <ion-icon name="document-text-outline" color="medium"></ion-icon>
+                <ion-note>{{ ex.posture_notes }}</ion-note>
+              </div>
+            }
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
 </ion-content>
