@@ -46,13 +46,13 @@
 * ✅ **TASK-204 & TASK-205 — Routing Guards & Pagina Login** — Completato
   * `authGuard` e `roleGuard` basati su `UrlTree`.
   * UI Login con Reactive Forms e navigazione condizionale post-login (Desktop Dashboard vs Mobile Tabs).
-* **TASK-401 — Controller & Routes Paziente (`backend/controllers/patientControllers.js`, `backend/routes/patientRoutes.js`)**
-  * Endpoint `GET /api/patient/today-card` (scheda ed esercizi del giorno).
-  * Endpoint `POST /api/patient/session-logs` (salvataggio livello dolore 1–10 e note).
-* **TASK-402 — Schermata Scheda Mobile (Tab Home Paziente)**
-  * Layout a card con elenco sequenziale degli esercizi assegnati per la giornata corrente.
-* **TASK-403 — Componente Timer Interattivo**
-  * Timer DOM per il conto alla rovescia dei tempi di recupero e pausa prescritti tra le serie.
+* ✅ **TASK-401 — Controller & Routes Paziente (`backend/controllers/patientControllers.js`, `backend/routes/patientRoutes.js`)** — Completato
+  * Endpoint `GET /api/patient/today-card` (scheda ed esercizi del giorno). ✅
+  * Endpoint `POST /api/patient/session-logs` (salvataggio livello dolore 1–10 e note). ✅
+* ✅ **TASK-402 — Schermata Scheda Mobile (Tab Home Paziente)** — Completato
+  * Layout a card con elenco sequenziale degli esercizi assegnati per la giornata corrente. ✅
+* ✅ **TASK-403 — Componente Timer Interattivo** — Completato
+  * Timer DOM per il conto alla rovescia dei tempi di recupero e pausa prescritti tra le serie. ✅
 * **TASK-404 — Form Report Fine Sessione**
   * Form di chiusura allenamento con slider/rating del dolore (1–10), campo note e invio asincrono al backend.
 * **TASK-501 & TASK-502 — Modulo Fotocamera Posturale (Tab Camera)**
@@ -67,7 +67,7 @@
 | Sprint | Obiettivo Sviluppatore A | Obiettivo Sviluppatore B |
 | :--- | :--- | :--- |
 | **Sprint 1 (Fondamenta)** | ✅ `TASK-103`, `TASK-104`, `TASK-105` (Auth Backend & Server) | `TASK-202`, `TASK-203`, `TASK-204`, `TASK-205` (Auth Frontend) |
-| **Sprint 2 (Business Logic)** | ✅ `TASK-301`, `TASK-302` (Card Model & Therapist API) | `TASK-401`, `TASK-402`, `TASK-403` (Patient API, Scheda & Timer) |
+| **Sprint 2 (Business Logic)** | ✅ `TASK-301`, `TASK-302` (Card Model & Therapist API) | ✅ `TASK-401`, `TASK-402`, `TASK-403` (Patient API, Scheda & Timer) |
 | **Sprint 3 (Features & Hardware)** | `TASK-303`, `TASK-304`, `TASK-305` (Desktop Dashboard & Reports) | `TASK-404`, `TASK-501/502`, `TASK-503/504` (Report Dolore, Camera, Mappa) |
 
 ---

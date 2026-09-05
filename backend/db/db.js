@@ -84,18 +84,21 @@ db.serialize(() => {
   // ─────────────────────────────────────────────
   // TABELLA: session_logs (diari di sessione)
   // Registra il feedback del paziente dopo ogni sessione
-  // pain_level: scala 1-10
+  // pain_level: scala 1-10 (opzionale finché TASK-404 non lo richiederà dal form)
+  // duration_seconds: durata della sessione registrata dal timer (TASK-403)
   // photo_base64: foto posturale opzionale (stringa Base64)
+  // ⚠️ DB esistenti: CREATE IF NOT EXISTS non migra; resettare con `rm backend/db/rehabtrack.db`
   // ─────────────────────────────────────────────
   db.run(`
     CREATE TABLE IF NOT EXISTS session_logs (
-      id              INTEGER PRIMARY KEY AUTOINCREMENT,
-      card_id         INTEGER NOT NULL,
-      patient_id      INTEGER NOT NULL,
-      pain_level      INTEGER NOT NULL CHECK(pain_level BETWEEN 1 AND 10),
-      patient_notes   TEXT    DEFAULT '',
-      photo_base64    TEXT    DEFAULT NULL,
-      completed_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+      card_id            INTEGER NOT NULL,
+      patient_id         INTEGER NOT NULL,
+      pain_level         INTEGER CHECK(pain_level BETWEEN 1 AND 10),
+      patient_notes      TEXT    DEFAULT '',
+      duration_seconds   INTEGER DEFAULT 0,
+      photo_base64       TEXT    DEFAULT NULL,
+      completed_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (card_id)    REFERENCES cards(id),
       FOREIGN KEY (patient_id) REFERENCES users(id)
     )
