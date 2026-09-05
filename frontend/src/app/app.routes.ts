@@ -10,8 +10,8 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     canActivate: [authGuard, roleGuard('fisioterapista')],
-    // ponytail: placeholder — la dashboard verrà implementata in TASK-303
-    loadComponent: () => import('./login/login.page').then((m) => m.LoginPage),
+    // FIX: usa DashboardPage placeholder al posto del LoginPage (TASK-303 lo completerà)
+    loadComponent: () => import('./dashboard/dashboard.page').then((m) => m.DashboardPage),
   },
   {
     path: '',

@@ -1,7 +1,8 @@
 import { Component, EnvironmentInjector, inject } from '@angular/core';
 import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { triangle, ellipse, square, fitnessOutline } from 'ionicons/icons';
+// FIX: rimossi 'ellipse' e 'square' (non più usati); aggiunti cameraOutline e mapOutline per le nuove label
+import { fitnessOutline, cameraOutline, mapOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
@@ -13,6 +14,6 @@ export class TabsPage {
   public environmentInjector = inject(EnvironmentInjector);
 
   constructor() {
-    addIcons({ triangle, ellipse, square, fitnessOutline });
+    addIcons({ fitnessOutline, cameraOutline, mapOutline });
   }
 }

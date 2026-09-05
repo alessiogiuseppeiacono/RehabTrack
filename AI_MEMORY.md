@@ -10,9 +10,9 @@
 | Task | Stato | Note |
 | :--- | :--- | :--- |
 | TASK-401 — Controller & Routes Paziente (backend) | ✅ | `GET /today-card`, `POST /session-logs` |
-| TASK-402 — Scheda odierna (Tab 1) | ✅ (aggiornata) | 404/scheda vuota → stato amichevole; esercizi in `<ion-list>` |
-| TASK-403 — Timer sessione + log durata | ✅ (aggiornata) | Nuovo `SessionTimerComponent`; al termine POST `duration_seconds` |
-| TASK-404 — Form report fine sessione | ⏳ Sprint 3 | Aggiungerà `pain_level` (1–10) + note allo stesso POST |
+| TASK-402 — Scheda odierna (Tab 1) | ✅ | 404/scheda vuota → stato amichevole; esercizi in `<ion-list>` |
+| TASK-403 — Timer sessione + log durata | ✅ | `SessionTimerComponent`; stato 'report' dopo Termina |
+| TASK-404 — Form report fine sessione | ✅ | Slider pain_level (1-10) + textarea note; emette `SessionReport` |
 
 ## 🏗️ Decisioni architetturali
 
@@ -27,8 +27,16 @@
    - `SessionTimerComponent` (nuovo) → cronometro di sessione con Avvia/Pausa/Termina; emette i secondi trascorsi.
 5. **Contratto REST aggiornato (concordato col nuovo TASK-403)**:
    - `POST /api/patient/session-logs` ora accetta `{ card_id, duration_seconds, pain_level?, patient_notes? }`.
-   - `pain_level` è opzionale fin quando TASK-404 non lo renderà obbligatorio; validato 1–10 se presente.
+   - `pain_level` è **obbligatorio dal form TASK-404** (inviato come intero 1–10 dallo slider).
    - ⚠️ **Migrazione DB**: `session_logs` ora ha `duration_seconds INTEGER DEFAULT 0` e `pain_level` nullable (solo per DB nuovi). Un DB locale esistente va resettato: `rm backend/db/rehabtrack.db` (il seed lo ricrea).
+6. **SessionReport (TASK-404)**:
+   - `SessionTimerComponent` ora emette `SessionReport { duration_seconds, pain_level, patient_notes }` invece di `number`.
+   - Nuovo stato `'report'` nel timer: cliccando Termina si apre il form inline; solo all'Invia Feedback viene emesso l'evento.
+   - `Tab1Page.onSessionFinished(report: SessionReport)` riceve l'oggetto completo e lo passa a `PatientService.saveSessionLog()`.
+7. **Bug Fix (branch feature/sprint2-completion)**:
+   - Login: `err.error?.error` al posto di `err.error?.message`.
+   - Dashboard route: punta a `DashboardPage` placeholder (non più a `LoginPage`).
+   - Tab bar: icone `cameraOutline`/`mapOutline`, label "Diario"/"Mappa".
 
 ## 🌱 Variabili d'ambiente / credenziali seed
 

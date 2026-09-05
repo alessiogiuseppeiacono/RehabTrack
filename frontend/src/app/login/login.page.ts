@@ -46,7 +46,8 @@ export class LoginPage {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMsg = err.error?.message || 'Credenziali non valide.';
+        // FIX: il backend risponde con { error: "..." }, non { message: "..." }
+        this.errorMsg = err.error?.error || 'Credenziali non valide.';
       },
     });
   }
