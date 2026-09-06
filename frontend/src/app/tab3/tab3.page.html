@@ -1,17 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
+    <ion-title>Mappa</ion-title>
   </ion-toolbar>
 </ion-header>
 
+<!-- TASK-503: ion-content senza padding per occupare tutto lo spazio disponibile -->
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <!-- TASK-503: container mappa Leaflet — deve avere un ID stabile -->
+  <div id="map"></div>
 </ion-content>
