@@ -1,0 +1,15 @@
+// TASK-503: ion-content trasparente — il div#map copre tutto lo spazio
+ion-content {
+  --background: transparent;
+}
+
+// TASK-503: la mappa occupa l'intera area del content (absolute fill)
+#map {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
