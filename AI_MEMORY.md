@@ -1,11 +1,11 @@
-# 🧠 AI_MEMORY.md — RehabTrack (Sviluppatore B, branch `feat/sprint-2-retry`)
+# 🧠 AI_MEMORY.md — RehabTrack (Sviluppatore B, branch `feature/sprint3-tasks-502-503`)
 
 > Cervello esterno dell'agente. Leggere PRIMA di scrivere codice e aggiornare DOPO ogni task.
 > Regole operative: vedere `AGENTS.md` (lazy senior dev — riusare > riscrivere, diff minimo).
 
 ---
 
-## 📌 Stato Sprint 2 (Sviluppatore B)
+## 📌 Stato Sprint 2 (Sviluppatore B) — completato
 
 | Task | Stato | Note |
 | :--- | :--- | :--- |
@@ -14,6 +14,17 @@
 | TASK-403 — Timer sessione + log durata | ✅ | `SessionTimerComponent`; stato 'report' dopo Termina |
 | TASK-404 — Form report fine sessione | ✅ | Slider pain_level (1-10) + textarea note; emette `SessionReport` |
 
+## 📌 Stato Sprint 3 (Sviluppatore B) — branch `feature/sprint3-tasks-502-503`
+
+| Task | Stato | Note |
+| :--- | :--- | :--- |
+| TASK-501 — Camera Service | ✅ (inline) | Logica camera integrata direttamente in `tab2.page.ts`; nessun service separato (YAGNI) |
+| TASK-502 — Galleria Diario Posturale (Tab Camera) | ✅ | FAB, griglia 2 col, persistenza `localStorage`, deletePhoto, modal preview full-screen |
+| TASK-503 — Mappa Leaflet (Tab Mappa) | ✅ | `L.map()` in `ionViewDidEnter`, OSM tiles, marker Centro di Riabilitazione, fix icone, invalidateSize |
+| TASK-504 — GPS + Geolocalizzazione | ✅ | `Geolocation.getCurrentPosition`, marker utente, cerchio accuratezza, fallback silenzioso su Palermo |
+
+---
+
 ## 🏗️ Decisioni architetturali
 
 1. **URL assoluti obbligatori** nell'HttpClient (anti-crash `Invalid base URL`):
@@ -21,7 +32,7 @@
    - L'interceptor (`http-int.interceptor.ts`) risolve comunque ogni URL verso `http://localhost:3000/api` e inietta `Authorization: Bearer <token>`.
 2. **Ionicons**: ogni icona usata nel template va importata da `ionicons/icons` e registrata con `addIcons({...})` nel constructor (Angular 19+ standalone — senza registrazione il rendering si blocca).
    - Fix applicato: `tabs.page.ts` non registrava `fitness-outline` usato nella tab bar → aggiunto `fitnessOutline`.
-3. **Standalone components ovunque**: import diretti (`IonList`, `IonItem`, `CommonModule`, ...) nell'array `imports`, niente NgModule.
+3. **Standalone components ovunque**: import diretti (`IonList`, `IonItem`, `CommonModule`, ...) nell'array `imports`, niente NgModule. **`standalone: true` obbligatorio nel decoratore.**
 4. **Timer a doppio ruolo**:
    - `TimerComponent` (rest countdown) → conto alla rovescia per esercizio, resta invariato.
    - `SessionTimerComponent` (nuovo) → cronometro di sessione con Avvia/Pausa/Termina; emette i secondi trascorsi.
@@ -37,6 +48,21 @@
    - Login: `err.error?.error` al posto di `err.error?.message`.
    - Dashboard route: punta a `DashboardPage` placeholder (non più a `LoginPage`).
    - Tab bar: icone `cameraOutline`/`mapOutline`, label "Diario"/"Mappa".
+8. **Tab2 — Galleria Posturale (TASK-501/502)**:
+   - Camera logica inline in `tab2.page.ts` (nessun service separato — YAGNI).
+   - `Capacitor.isNativePlatform()` controlla la piattaforma **prima** di chiamare `Camera.getPhoto()`.
+   - Su browser desktop: fallback immediato con `<input type="file">` programmatico + `FileReader`.
+   - Persistenza: `localStorage` con chiave `'rehabtrack_photos'`; caricata in `ngOnInit`.
+   - Modal preview: `[isOpen]="selectedPhoto !== null"` su `ion-modal`.
+9. **Tab3 — Mappa & GPS (TASK-503/504)**:
+   - Leaflet inizializzato in `ionViewDidEnter()` (non `ngAfterViewInit`) — garantisce DOM pronto.
+   - Guard `if (this.map)` evita doppia inizializzazione al ritorno sulla tab.
+   - Fix icone: `L.icon({ iconUrl: 'assets/leaflet/...' })` + override `L.Marker.prototype.options.icon`; file copiati in `frontend/src/assets/leaflet/`.
+   - CSS Leaflet importato in `global.scss`.
+   - GPS: `Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 })`; marker utente + cerchio accuratezza; fallback silenzioso su Palermo.
+   - `ngOnDestroy()` → `this.map.remove()` evita "Map container already initialized".
+
+---
 
 ## 🌱 Variabili d'ambiente / credenziali seed
 
@@ -49,6 +75,8 @@
   - `GET  http://localhost:3000/api/patient/today-card`
   - `POST http://localhost:3000/api/patient/session-logs`
 
+---
+
 ## 🌳 Albero file chiave
 
 ```
@@ -60,15 +88,20 @@ backend/
   models/cardModel.js          # Card, Exercise
 frontend/src/app/
   services/patient.service.ts  # PatientService: getTodayCard(), saveSessionLog()
-  components/timer/timer.component.ts          # TASK-403 parte A: rest countdown
-  components/session-timer/session-timer.component.ts  # TASK-403 parte B: cronometro sessione (nuovo)
+  services/auth.service.ts     # AuthService: login, logout, token decode
+  components/timer/            # TASK-403 parte A: rest countdown
+  components/session-timer/    # TASK-403 parte B + TASK-404: cronometro + form dolore
   tab1/                        # TASK-402: scheda odierna (loading/errore/vuoto/lista)
+  tab2/                        # TASK-501/502: galleria posturale (Camera + localStorage + modal)
+  tab3/                        # TASK-503/504: mappa Leaflet + GPS geolocalizzazione
   http-int.interceptor.ts      # Bearer token + baseUrl + redirect 401
+frontend/src/assets/leaflet/   # Icone marker Leaflet (copiate da node_modules)
+frontend/src/global.scss       # CSS globali + import leaflet/dist/leaflet.css
 ```
 
 ## ✅ Checklist pre-commit (per ogni task)
 
-- [ ] Commenti `// TASK-4xx:` sulle parti implementate
+- [ ] Commenti `// TASK-5xx:` sulle parti implementate
 - [ ] `ng build` senza errori; `ng test` passa
-- [ ] URL assoluti, `addIcons`, standalone rispettati
+- [ ] URL assoluti, `addIcons`, `standalone: true` rispettati
 - [ ] Diff minimo (niente astrazioni non richieste)
