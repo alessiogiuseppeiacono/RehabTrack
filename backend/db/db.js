@@ -202,9 +202,9 @@ async function putData() {
   // 5. Inserimento session_log di esempio
   await new Promise((resolve, reject) => {
     db.run(
-      `INSERT INTO session_logs (card_id, patient_id, pain_level, patient_notes)
-       VALUES (?, ?, ?, ?)`,
-      [cardId, patientId, 4, 'Leggero fastidio al terzo set di ponte gluteo, migliorato dopo stretching finale.'],
+      `INSERT INTO session_logs (card_id, patient_id, pain_level, patient_notes, duration_seconds)
+       VALUES (?, ?, ?, ?, ?)`,
+      [cardId, patientId, 4, 'Leggero fastidio al terzo set di ponte gluteo, migliorato dopo stretching finale.', 720],
       function (err) {
         if (err) reject(err);
         else resolve(this.lastID);

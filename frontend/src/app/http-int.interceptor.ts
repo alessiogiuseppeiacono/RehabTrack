@@ -2,9 +2,10 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { environment } from '../environments/environment';
 
-const API_ORIGIN = 'http://localhost:3000';
-const BASE_API_URL = 'http://localhost:3000/api';
+const BASE_API_URL = environment.apiUrl;
+const API_ORIGIN = BASE_API_URL.replace(/\/api$/, '');
 
 export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);

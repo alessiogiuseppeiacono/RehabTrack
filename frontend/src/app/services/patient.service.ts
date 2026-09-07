@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Exercise {
   id: number;
@@ -38,7 +39,7 @@ export interface SessionLog {
 @Injectable({ providedIn: 'root' })
 export class PatientService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000/api/patient';
+  private readonly baseUrl = `${environment.apiUrl}/patient`;
 
   getTodayCard(): Observable<TodayCardResponse> {
     return this.http.get<TodayCardResponse>(`${this.baseUrl}/today-card`);

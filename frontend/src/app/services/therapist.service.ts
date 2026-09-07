@@ -4,6 +4,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // TASK-303: interfacce allineate alla risposta di User.findPatientsByTherapist()
 export interface Patient {
@@ -68,7 +69,7 @@ export interface CreateCardResponse {
 export class TherapistService {
   private readonly http = inject(HttpClient);
   // TASK-303: URL assoluto — stesso pattern di PatientService (evita crash "Invalid base URL")
-  private readonly baseUrl = 'http://localhost:3000/api/therapist';
+  private readonly baseUrl = `${environment.apiUrl}/therapist`;
 
   /** GET /api/therapist/patients — lista pazienti del terapista autenticato */
   getPatients(): Observable<Patient[]> {

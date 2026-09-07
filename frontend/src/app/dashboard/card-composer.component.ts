@@ -15,8 +15,7 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { closeOutline, addOutline, trashOutline, barbellOutline } from 'ionicons/icons';
-import { TherapistService, CardPayload } from '../services/therapist.service';
-import { Patient } from '../services/therapist.service';
+import { TherapistService, CardPayload, Patient } from '../services/therapist.service';
 
 @Component({
   selector: 'app-card-composer',
@@ -102,6 +101,7 @@ export class CardComposerComponent implements OnInit {
     this.cdr.detectChanges();
 
     // TASK-304: costruisce il payload esatto atteso da therapistControllers.createCard()
+    // ponytail: FormGroup.value è intrinsecamente untyped ({[key: string]: any}), cast inevitabile
     const payload: CardPayload = {
       patient_id: this.patient.id,
       title: this.form.value.title.trim(),

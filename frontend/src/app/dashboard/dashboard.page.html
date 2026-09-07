@@ -158,13 +158,19 @@
           @if (loadingCards) {
             <div class="state-center"><ion-spinner name="crescent"></ion-spinner></div>
           }
-          @if (!loadingCards && patientCards.length === 0) {
+          @if (!loadingCards && cardsError) {
+            <div class="state-center">
+              <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+              <ion-text color="danger"><p>{{ cardsError }}</p></ion-text>
+            </div>
+          }
+          @if (!loadingCards && !cardsError && patientCards.length === 0) {
             <div class="state-center logs-empty">
               <ion-icon name="fitness-outline" size="large" color="medium"></ion-icon>
               <ion-text color="medium"><p>Nessuna scheda assegnata</p></ion-text>
             </div>
           }
-          @if (!loadingCards && patientCards.length > 0) {
+          @if (!loadingCards && !cardsError && patientCards.length > 0) {
             <div class="logs-grid">
               @for (card of patientCards; track card.id) {
                 <ion-card class="log-card">
@@ -219,7 +225,7 @@
           @if (!loadingLogs && !logsError && patientLogs.length > 0) {
             <div class="logs-grid">
               @for (log of patientLogs; track log.id) {
-                <ion-card class="log-card" [class.pain-critical]="isPainCritical(log.pain_level)">
+                <ion-card class="log-card" [class.pain-critical]="log.pain_level !== null && log.pain_level > 7">
                   <ion-card-header>
                     <ion-card-title class="log-card-title">{{ log.card_title }}</ion-card-title>
                     <ion-note>{{ log.completed_at | date:'dd/MM/yyyy HH:mm' }}</ion-note>
@@ -236,9 +242,9 @@
                         <div class="log-stat">
                           <ion-icon
                             name="heart-outline"
-                            [color]="isPainCritical(log.pain_level) ? 'danger' : 'success'">
+                            [color]="painColor(log.pain_level)">
                           </ion-icon>
-                          <ion-badge [color]="isPainCritical(log.pain_level) ? 'danger' : 'success'">
+                          <ion-badge [color]="painColor(log.pain_level)">
                             Dolore {{ log.pain_level }}/10
                           </ion-badge>
                         </div>

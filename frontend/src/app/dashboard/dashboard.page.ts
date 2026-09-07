@@ -68,6 +68,7 @@ export class DashboardPage implements OnInit {
   // TASK-305: schede assegnate al paziente selezionato
   patientCards: PatientCard[] = [];
   loadingCards = false;
+  cardsError: string | null = null;
 
   // TASK-305: controllo visibilità modale feedback & diario
   showFeedback = false;
@@ -125,6 +126,7 @@ export class DashboardPage implements OnInit {
     this.patientLogs = [];
     this.patientCards = [];
     this.logsError = null;
+    this.cardsError = null;
     this.showComposer = false;
     this.showFeedback = false;
     this.loadingLogs = true;
@@ -138,7 +140,10 @@ export class DashboardPage implements OnInit {
       });
     this.therapistService.getPatientCards(patient.id)
       .pipe(finalize(() => { this.loadingCards = false; this.cdr.detectChanges(); }))
-      .subscribe({ next: (cards) => { this.patientCards = cards; } });
+      .subscribe({
+        next: (cards) => { this.patientCards = cards; },
+        error: (err) => { this.cardsError = err?.error?.error || err?.message || 'Errore caricamento schede'; },
+      });
   }
 
   // TASK-304: apre il modale compositore schede
@@ -161,9 +166,12 @@ export class DashboardPage implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // TASK-303: pain_level > 7 → evidenziazione critica (usato nel template)
-  isPainCritical(level: number | null): boolean {
-    return level !== null && level > 7;
+  // Sprint Finale: colore badge dolore a 3 livelli (allineato a FeedbackViewerComponent)
+  painColor(level: number | null): string {
+    if (level === null) return 'medium';
+    if (level <= 4) return 'success';
+    if (level <= 7) return 'warning';
+    return 'danger';
   }
 
   // TASK-303: formatta secondi in mm:ss leggibile

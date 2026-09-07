@@ -12,6 +12,7 @@ import { AuthService } from '../services/auth.service';
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
+  standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,

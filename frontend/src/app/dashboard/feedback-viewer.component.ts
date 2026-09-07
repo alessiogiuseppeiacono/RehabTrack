@@ -13,8 +13,7 @@ import {
   closeOutline, heartOutline, timeOutline, calendarOutline,
   alertCircleOutline, cameraOutline, imagesOutline
 } from 'ionicons/icons';
-import { TherapistService, PatientLog } from '../services/therapist.service';
-import { Patient } from '../services/therapist.service';
+import { TherapistService, PatientLog, Patient } from '../services/therapist.service';
 
 @Component({
   selector: 'app-feedback-viewer',
