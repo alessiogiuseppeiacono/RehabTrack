@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rehab Track</string>
+    <string name="title_activity_main">Rehab Track</string>
+    <string name="package_name">it.rehabtrack.app</string>
+    <string name="custom_url_scheme">it.rehabtrack.app</string>
+</resources>

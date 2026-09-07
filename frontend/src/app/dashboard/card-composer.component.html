@@ -71,7 +71,7 @@
   </form>
 </ion-content>
 
-<ion-footer class="ion-padding" style="background: #fff; border-top: 1px solid #e0e0e0;">
+<ion-footer class="ion-padding" style="background: var(--ion-background-color, #fff); border-top: 1px solid var(--ion-color-step-150, #e0e0e0);">
   <ion-button expand="block" [disabled]="!canSubmit" (click)="submit()">
     @if (saving) {
       <ion-spinner name="crescent" slot="start"></ion-spinner>
