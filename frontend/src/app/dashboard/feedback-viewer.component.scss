@@ -1,0 +1,164 @@
+// TASK-305: stili modale feedback dolore & diario posturale
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #fff;
+}
+ion-content {
+  --height: 100%;
+  flex: 1;
+}
+
+// ── Stato vuoto ───────────────────────────────────────────────────────────────
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  gap: 14px;
+  text-align: center;
+  ion-text h3 { font-weight: 700; }
+  ion-text p  { color: var(--ion-color-medium); max-width: 320px; }
+}
+
+// ── Chips statistici ──────────────────────────────────────────────────────────
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-chip {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+
+  .stat-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ion-color-primary);
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  &.accent-critical .stat-value { color: var(--ion-color-danger); }
+}
+
+// ── Titolo sezione ────────────────────────────────────────────────────────────
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--ion-color-dark);
+  ion-icon { color: var(--ion-color-primary); }
+}
+
+// ── Tabella sessioni ──────────────────────────────────────────────────────────
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-row {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  display: grid;
+  grid-template-columns: 130px 1fr 90px 100px;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  transition: transform 0.12s ease;
+
+  &:hover { transform: translateX(2px); }
+
+  &.session-critical {
+    border-left: 3px solid var(--ion-color-danger);
+    background: #fff5f5;
+  }
+
+  .session-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--ion-color-medium);
+    ion-icon { flex-shrink: 0; }
+  }
+
+  .session-card-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .session-duration {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: var(--ion-color-medium);
+  }
+
+  .session-pain {
+    text-align: right;
+    .pain-badge { font-weight: 700; font-size: 0.8rem; }
+  }
+
+  .session-notes {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(0,0,0,.06);
+    white-space: pre-wrap;
+  }
+}
+
+// ── Diario posturale empty ─────────────────────────────────────────────────────
+.photo-empty {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06);
+
+  ion-icon {
+    font-size: 48px;
+    color: rgba(var(--ion-color-primary-rgb), 0.2);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  ion-text p { font-size: 0.85rem; color: var(--ion-color-medium); margin: 4px 0; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .session-row { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
+  .session-card-name { grid-column: 1 / -1; }
+}

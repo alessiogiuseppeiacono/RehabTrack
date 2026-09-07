@@ -103,4 +103,29 @@ async function getPatientLogs(req, res) {
   res.json(logs);
 }
 
-module.exports = { getPatients, createPatient, createCard, getPatientLogs };
+/**
+ * GET /api/therapist/patients/:id/cards
+ * TASK-305: schede assegnate a un paziente con conteggio esercizi.
+ */
+async function getPatientCards(req, res) {
+  const patientId = Number(req.params.id);
+  const patient = await User.findById(patientId);
+  if (!patient || patient.role !== 'paziente' || patient.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Paziente non associato al terapista autenticato' });
+  }
+  const cards = await new Promise((resolve, reject) => {
+    db.all(
+      `SELECT c.*, COUNT(e.id) AS exercise_count
+       FROM cards c
+       LEFT JOIN exercises e ON e.card_id = c.id
+       WHERE c.patient_id = ?
+       GROUP BY c.id
+       ORDER BY c.created_at DESC`,
+      [patientId],
+      (err, rows) => { if (err) return reject(err); resolve(rows || []); }
+    );
+  });
+  res.json(cards);
+}
+
+module.exports = { getPatients, createPatient, createCard, getPatientLogs, getPatientCards };
