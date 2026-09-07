@@ -1,0 +1,125 @@
+<!-- TASK-305: Modale Feedback Dolore & Diario Posturale -->
+<ion-header>
+  <ion-toolbar color="secondary">
+    <ion-buttons slot="start">
+      <ion-button (click)="dismiss()" id="btn-close-feedback">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      <ion-icon name="heart-outline" style="margin-right:6px;vertical-align:middle"></ion-icon>
+      Feedback & Diario — {{ patient.first_name }} {{ patient.last_name }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="state-center">
+      <ion-spinner name="crescent"></ion-spinner>
+      <ion-text color="medium"><p>Caricamento feedback…</p></ion-text>
+    </div>
+  }
+
+  <!-- Errore -->
+  @if (!loading && error) {
+    <div class="state-center">
+      <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+      <ion-text color="danger"><p>{{ error }}</p></ion-text>
+    </div>
+  }
+
+  <!-- Nessun log -->
+  @if (!loading && !error && logs.length === 0) {
+    <div class="state-center">
+      <ion-icon name="calendar-outline" size="large" color="medium"></ion-icon>
+      <ion-text color="medium">
+        <h3>Nessuna sessione registrata</h3>
+        <p>Il paziente non ha ancora completato sessioni di allenamento.</p>
+      </ion-text>
+    </div>
+  }
+
+  <!-- TASK-305: cronologia feedback sessioni -->
+  @if (!loading && !error && logs.length > 0) {
+
+      <!-- Riepilogo statistico rapido -->
+      <div class="stats-row">
+        <div class="stat-chip">
+          <span class="stat-value">{{ logs.length }}</span>
+          <span class="stat-label">Sessioni</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-value">{{ avgPain }}</span>
+          <span class="stat-label">Dolore medio</span>
+        </div>
+        <div class="stat-chip accent-critical">
+          <span class="stat-value">{{ criticalCount }}</span>
+          <span class="stat-label">Sessioni critiche (&gt;7)</span>
+        </div>
+      </div>
+
+      <!-- TASK-305: tabella sessioni -->
+      <h3 class="section-title">
+        <ion-icon name="time-outline"></ion-icon>
+        Cronologia sessioni
+      </h3>
+
+      <div class="sessions-list">
+        @for (log of logs; track log.id) {
+          <div class="session-row" [class.session-critical]="log.pain_level !== null && log.pain_level > 7">
+            <!-- Data -->
+            <div class="session-date">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>{{ log.completed_at | date:'dd/MM/yy HH:mm' }}</span>
+            </div>
+            <!-- Scheda -->
+            <div class="session-card-name">{{ log.card_title }}</div>
+            <!-- Durata -->
+            <div class="session-duration">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ formatDuration(log.duration_seconds) }}
+            </div>
+            <!-- Badge dolore -->
+            <div class="session-pain">
+              @if (log.pain_level !== null) {
+                <ion-badge [color]="painColor(log.pain_level)" class="pain-badge">
+                  ❤ {{ log.pain_level }}/10
+                </ion-badge>
+              } @else {
+                <ion-badge color="medium">—</ion-badge>
+              }
+            </div>
+            <!-- Note paziente -->
+            @if (log.patient_notes) {
+              <div class="session-notes">
+                💬 {{ log.patient_notes }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- TASK-305: sezione diario posturale (foto) -->
+      <h3 class="section-title" style="margin-top:28px">
+        <ion-icon name="images-outline"></ion-icon>
+        Diario Posturale
+      </h3>
+
+      <!-- ponytail: le foto sono salvate in localStorage del dispositivo paziente,
+           non vengono inviate al server (nessun endpoint lato backend per le foto).
+           Upgrade path: aggiungere POST /api/patient/session-logs con photo_base64
+           e un campo nella dashboard che le recuperi dal log. -->
+      <div class="photo-empty">
+        <ion-icon name="camera-outline"></ion-icon>
+        <ion-text color="medium">
+          <p>Le foto del diario posturale vengono salvate localmente sul dispositivo del paziente.</p>
+          <p>Per visualizzarle qui sarà necessario sincronizzarle con il server (funzionalità futura).</p>
+        </ion-text>
+      </div>
+
+  }
+
+</ion-content>

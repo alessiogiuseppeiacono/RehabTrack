@@ -1,4 +1,4 @@
-﻿// TASK-303: Dashboard Desktop Fisioterapista — CSS master-detail layout
+// TASK-303: Dashboard Desktop Fisioterapista — CSS master-detail layout
 
 // ── Variabili ─────────────────────────────────────────────────────────────────
 :host {
@@ -265,3 +265,11 @@
     padding: 20px 16px;
   }
 }
+
+// ── TASK-304/305 (fix layout): dimensioni modali desktop ─────────────────────
+ion-modal {
+  --width: 750px;
+  --height: 85vh;
+  --border-radius: 12px;
+}
+

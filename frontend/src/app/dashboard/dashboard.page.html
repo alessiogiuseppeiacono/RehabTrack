@@ -1,4 +1,4 @@
-﻿<!-- TASK-303: Dashboard Desktop Fisioterapista — layout master-detail a 2 colonne -->
+<!-- TASK-303: Dashboard Desktop Fisioterapista — layout master-detail a 2 colonne -->
 <ion-header>
   <ion-toolbar>
     <ion-title>
@@ -128,26 +128,60 @@
               </ion-chip>
             }
           </div>
-          <!-- TASK-303: pulsanti azione per TASK-304 e TASK-305 -->
+          <!-- TASK-304 (fix): pulsanti azione — entrambi ora attivi -->
           <div class="detail-actions">
             <ion-button
               id="btn-new-card"
               color="primary"
-              [disabled]="true"
-              title="Disponibile con TASK-304">
+              (click)="openComposer()">
               <ion-icon slot="start" name="add-circle-outline"></ion-icon>
               Nuova Scheda
             </ion-button>
+            <!-- TASK-305: abilita pulsante Vedi Feedback & Diario -->
             <ion-button
               id="btn-view-feedback"
               color="secondary"
               fill="outline"
-              [disabled]="true"
-              title="Disponibile con TASK-305">
+              (click)="openFeedback()">
               <ion-icon slot="start" name="analytics-outline"></ion-icon>
-              Vedi Feedback & Diario
+              Vedi Feedback &amp; Diario
             </ion-button>
           </div>
+        </div>
+
+        <!-- TASK-305: sezione schede assegnate (prima dello storico sessioni) -->
+        <div class="detail-section">
+          <h2 class="section-title">
+            <ion-icon name="layers-outline"></ion-icon>
+            Schede Assegnate
+          </h2>
+          @if (loadingCards) {
+            <div class="state-center"><ion-spinner name="crescent"></ion-spinner></div>
+          }
+          @if (!loadingCards && patientCards.length === 0) {
+            <div class="state-center logs-empty">
+              <ion-icon name="fitness-outline" size="large" color="medium"></ion-icon>
+              <ion-text color="medium"><p>Nessuna scheda assegnata</p></ion-text>
+            </div>
+          }
+          @if (!loadingCards && patientCards.length > 0) {
+            <div class="logs-grid">
+              @for (card of patientCards; track card.id) {
+                <ion-card class="log-card">
+                  <ion-card-header>
+                    <ion-card-title class="log-card-title">{{ card.title }}</ion-card-title>
+                    <ion-note>{{ card.created_at | date:'dd/MM/yyyy' }}</ion-note>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <div class="log-stat">
+                      <ion-icon name="barbell-outline" color="primary"></ion-icon>
+                      <span>{{ card.exercise_count }} esercizi</span>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              }
+            </div>
+          }
         </div>
 
         <!-- Sezione storico sessioni -->
@@ -223,4 +257,35 @@
       }
     </main>
   </div>
+
+  <!-- TASK-304: modale compositore schede — si apre sopra la dashboard -->
+  @if (selectedPatient) {
+    <ion-modal
+      [isOpen]="showComposer"
+      (didDismiss)="showComposer = false"
+      id="modal-card-composer"
+      class="custom-card-modal">
+      <ng-template>
+        <app-card-composer
+          [patient]="selectedPatient"
+          (cardCreated)="onCardCreated()"
+          (dismissed)="showComposer = false">
+        </app-card-composer>
+      </ng-template>
+    </ion-modal>
+
+    <!-- TASK-305: modale feedback dolore & diario posturale -->
+    <ion-modal
+      [isOpen]="showFeedback"
+      (didDismiss)="showFeedback = false"
+      id="modal-feedback-viewer"
+      class="feedback-modal">
+      <ng-template>
+        <app-feedback-viewer
+          [patient]="selectedPatient"
+          (dismissed)="showFeedback = false">
+        </app-feedback-viewer>
+      </ng-template>
+    </ion-modal>
+  }
 </ion-content>

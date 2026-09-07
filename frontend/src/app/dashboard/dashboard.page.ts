@@ -1,4 +1,6 @@
-﻿// TASK-303: Dashboard Desktop Fisioterapista — layout master-detail.
+// TASK-303: Dashboard Desktop Fisioterapista — layout master-detail.
+// TASK-304: integrato CardComposerComponent (modale compositore schede).
+// TASK-305: sezione schede assegnate + modale feedback dolore & diario posturale.
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +9,7 @@ import {
   IonButton, IonIcon, IonSpinner, IonText,
   IonSearchbar, IonChip, IonLabel, IonNote,
   IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonList
+  IonItem, IonList, IonModal
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -15,10 +17,13 @@ import {
   peopleOutline, personOutline, logOutOutline,
   addCircleOutline, analyticsOutline, alertCircleOutline,
   bodyOutline, calendarOutline, heartOutline, timeOutline,
-  chevronForwardOutline, pulseOutline
+  chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
+  barbellOutline
 } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
-import { TherapistService, Patient, PatientLog } from '../services/therapist.service';
+import { TherapistService, Patient, PatientLog, PatientCard } from '../services/therapist.service';
+import { CardComposerComponent } from './card-composer.component';
+import { FeedbackViewerComponent } from './feedback-viewer.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,7 +37,9 @@ import { TherapistService, Patient, PatientLog } from '../services/therapist.ser
     IonButton, IonIcon, IonSpinner, IonText,
     IonSearchbar, IonChip, IonLabel, IonNote,
     IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonList
+    IonItem, IonList, IonModal,
+    CardComposerComponent,
+    FeedbackViewerComponent
   ],
 })
 export class DashboardPage implements OnInit {
@@ -55,12 +62,23 @@ export class DashboardPage implements OnInit {
   // TASK-303: filtro ricerca
   searchQuery = '';
 
+  // TASK-304: controllo visibilità modale compositore
+  showComposer = false;
+
+  // TASK-305: schede assegnate al paziente selezionato
+  patientCards: PatientCard[] = [];
+  loadingCards = false;
+
+  // TASK-305: controllo visibilità modale feedback & diario
+  showFeedback = false;
+
   constructor() {
     addIcons({
       peopleOutline, personOutline, logOutOutline,
       addCircleOutline, analyticsOutline, alertCircleOutline,
       bodyOutline, calendarOutline, heartOutline, timeOutline,
-      chevronForwardOutline, pulseOutline
+      chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
+      barbellOutline
     });
   }
 
@@ -101,23 +119,46 @@ export class DashboardPage implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // TASK-303: selezione paziente → carica log
+  // TASK-303: selezione paziente → carica log e schede
   selectPatient(patient: Patient): void {
     this.selectedPatient = patient;
     this.patientLogs = [];
+    this.patientCards = [];
     this.logsError = null;
+    this.showComposer = false;
+    this.showFeedback = false;
     this.loadingLogs = true;
+    this.loadingCards = true;
+    // TASK-305: carica log e schede in parallelo
     this.therapistService.getPatientLogs(patient.id)
-      .pipe(finalize(() => {
-        this.loadingLogs = false;
-        this.cdr.detectChanges();
-      }))
+      .pipe(finalize(() => { this.loadingLogs = false; this.cdr.detectChanges(); }))
       .subscribe({
         next: (logs) => { this.patientLogs = logs; },
-        error: (err) => {
-          this.logsError = err?.error?.error || err?.message || 'Errore nel caricamento dei log';
-        },
+        error: (err) => { this.logsError = err?.error?.error || err?.message || 'Errore log'; },
       });
+    this.therapistService.getPatientCards(patient.id)
+      .pipe(finalize(() => { this.loadingCards = false; this.cdr.detectChanges(); }))
+      .subscribe({ next: (cards) => { this.patientCards = cards; } });
+  }
+
+  // TASK-304: apre il modale compositore schede
+  openComposer(): void {
+    this.showComposer = true;
+    this.cdr.detectChanges();
+  }
+
+  // TASK-304: scheda creata → chiude modale, ricarica schede e log
+  onCardCreated(): void {
+    this.showComposer = false;
+    if (this.selectedPatient) {
+      this.selectPatient(this.selectedPatient);
+    }
+  }
+
+  // TASK-305: apre modale feedback & diario
+  openFeedback(): void {
+    this.showFeedback = true;
+    this.cdr.detectChanges();
   }
 
   // TASK-303: pain_level > 7 → evidenziazione critica (usato nel template)

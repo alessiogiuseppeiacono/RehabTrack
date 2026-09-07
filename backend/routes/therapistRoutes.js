@@ -2,7 +2,7 @@
 
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { getPatients, createPatient, createCard, getPatientLogs } = require('../controllers/therapistControllers');
+const { getPatients, createPatient, createCard, getPatientLogs, getPatientCards } = require('../controllers/therapistControllers');
 
 const router = express.Router();
 
@@ -13,5 +13,6 @@ router.get('/patients', getPatients);
 router.post('/patients', createPatient);
 router.post('/cards', createCard);
 router.get('/patients/:id/logs', getPatientLogs);
+router.get('/patients/:id/cards', getPatientCards); // TASK-305
 
 module.exports = router;

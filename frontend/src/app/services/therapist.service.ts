@@ -1,4 +1,5 @@
-﻿// TASK-303: TherapistService — client HTTP per le API del fisioterapista.
+// TASK-303: TherapistService — client HTTP per le API del fisioterapista.
+// TASK-304: aggiunto createCard().
 // Pattern identico a PatientService: inject(HttpClient), URL assoluti, Observable.
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -24,6 +25,11 @@ export interface TherapistCard {
   created_at: string;
 }
 
+// TASK-305: Card con conteggio esercizi (GET /patients/:id/cards JOIN exercises)
+export interface PatientCard extends TherapistCard {
+  exercise_count: number;
+}
+
 // TASK-303: SessionLog dal backend (therapistControllers.js — getPatientLogs JOIN cards)
 export interface PatientLog {
   id: number;
@@ -34,6 +40,28 @@ export interface PatientLog {
   patient_notes: string | null;
   duration_seconds: number;
   completed_at: string;
+}
+
+// TASK-304: payload esercizio — campi matching cardModel.js Exercise.createBulk()
+export interface CardExercisePayload {
+  name: string;
+  sets: number;
+  reps_or_duration: string;
+  rest_seconds: number;
+  posture_notes?: string;
+}
+
+// TASK-304: payload scheda — matching therapistControllers.js createCard()
+export interface CardPayload {
+  patient_id: number;
+  title: string;
+  exercises: CardExercisePayload[];
+}
+
+// TASK-304: risposta 201 da POST /api/therapist/cards
+export interface CreateCardResponse {
+  card: TherapistCard;
+  exerciseIds: number[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -61,5 +89,15 @@ export class TherapistService {
     pathology?: string;
   }): Observable<Patient> {
     return this.http.post<Patient>(`${this.baseUrl}/patients`, data);
+  }
+
+  /** POST /api/therapist/cards — TASK-304: crea scheda con N esercizi per un paziente */
+  createCard(payload: CardPayload): Observable<CreateCardResponse> {
+    return this.http.post<CreateCardResponse>(`${this.baseUrl}/cards`, payload);
+  }
+
+  /** GET /api/therapist/patients/:id/cards — TASK-305: schede assegnate con conteggio esercizi */
+  getPatientCards(patientId: number): Observable<PatientCard[]> {
+    return this.http.get<PatientCard[]>(`${this.baseUrl}/patients/${patientId}/cards`);
   }
 }

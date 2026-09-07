@@ -28,8 +28,10 @@
 | Task | Stato | Note |
 | :--- | :--- | :--- |
 | TASK-303 — Dashboard Desktop Fisioterapista | ✅ | `TherapistService`, layout master-detail CSS Grid, lista pazienti con filtro, storico log sessioni |
-| TASK-304 — Compositore Schede Esercizi | ⬜ | Prossimo task — pulsante placeholder già nella dashboard |
-| TASK-305 — Vista Feedback Dolore & Diario Posturale | ⬜ | Dipende da TASK-303 |
+| TASK-304 — Compositore Schede Esercizi | ✅ | `CardComposerComponent` (modale, `FormArray`), fix layout desktop (max-width 720px, max-height 85vh) |
+| TASK-305 — Vista Feedback Dolore & Diario Posturale | ✅ | `FeedbackViewerComponent`, sezione Schede Assegnate, `getPatientCards()`, badge dolore colorato, diario con fallback |
+
+> Sprint 4 **COMPLETATO** — build pulita (0 errori, 0 warning)
 
 ---
 
@@ -68,16 +70,15 @@
    - Fix icone: `L.icon({ iconUrl: 'assets/leaflet/...' })` + override `L.Marker.prototype.options.icon`; file copiati in `frontend/src/assets/leaflet/`.
    - CSS Leaflet importato in `global.scss`.
    - GPS: `Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 })`; marker utente + cerchio accuratezza; fallback silenzioso su Palermo.
-   - `ngOnDestroy()` → `this.map.remove()` evita "Map container already initialized".
-10. **TherapistService & Dashboard (TASK-303)**:
+    - `ngOnDestroy()` → `this.map.remove()` evita "Map container already initialized".
+10. **TherapistService & Dashboard (TASK-303/304/305)**:
     - `TherapistService` in `services/therapist.service.ts` — stesso pattern di `PatientService` (inject, URL assoluti, Observable).
-    - Interfacce: `Patient`, `TherapistCard`, `PatientLog` — allineate al backend SQLite.
+    - Interfacce: `Patient`, `TherapistCard`, `PatientCard` (con `exercise_count`), `PatientLog`, `CardPayload`, `CreateCardResponse`.
     - Dashboard: **CSS Grid a 2 colonne** (`var(--master-width): 320px` + `1fr`); collasso a singola colonna su ≤768px.
-    - Filtro ricerca: filtro **locale** sull'array `patients[]` già caricato (nessuna chiamata HTTP aggiuntiva — YAGNI).
-    - Selezione paziente: chiama `getPatientLogs(id)` on-demand; guard `finalize()` + `cdr.detectChanges()` (pattern zoneless identico a Tab1).
-    - Evidenziazione dolore critico: `pain_level > 7` → classe `.pain-critical` (rosso), allineata a specifica TASK-305.
-    - Pulsanti TASK-304 e TASK-305 già presenti nella UI ma `[disabled]="true"` con `title` esplicativo.
-    - `ng build --configuration=development` ✅ (8.2s, no errori, chunk `dashboard.page` 45.9 kB).
+    - Filtro ricerca: filtro **locale** sull'array `patients[]` (YAGNI).
+    - **TASK-304 fix layout**: `ion-modal` con classe `.composer-modal` / `.feedback-modal`; CSS su host della dashboard imposta `--width: min(720px,95vw)`, `--max-height: 85vh`, `--height: auto`, `--border-radius: 16px`. Rimossi `breakpoints`/`initialBreakpoint` (erano per sheet mobile, non desktop).
+    - **TASK-305**: `GET /api/therapist/patients/:id/cards` (nuovo endpoint backend con COUNT esercizi JOIN); `FeedbackViewerComponent` modale; sezione Schede Assegnate in dashboard; badge dolore 3 livelli (verde/arancio/rosso); diario posturale con fallback (le foto sono in localStorage del device paziente, non sincronizzate lato server).
+    - `ng build --configuration=development` ✅ (0 errori, 0 warning).
 
 ---
 
@@ -127,8 +128,13 @@ frontend/src/global.scss       # CSS globali + import leaflet/dist/leaflet.css
 
 ```
 frontend/src/app/
-  services/therapist.service.ts    # TASK-303: TherapistService (getPatients, getPatientLogs, createPatient)
-  dashboard/dashboard.page.ts      # TASK-303: sostituisce placeholder — master-detail logic
-  dashboard/dashboard.page.html    # TASK-303: layout CSS Grid 2 colonne
-  dashboard/dashboard.page.scss    # TASK-303: stili master-detail, avatar, log cards, responsive
+  services/therapist.service.ts          # TASK-303/304/305: TherapistService completo
+  dashboard/dashboard.page.ts            # TASK-303/304/305: master-detail + modali
+  dashboard/dashboard.page.html          # TASK-303/304/305: layout, schede, log, modali
+  dashboard/dashboard.page.scss          # TASK-303/304 (fix): layout + modal sizing
+  dashboard/card-composer.component.*    # TASK-304 + fix layout: FormArray compositore
+  dashboard/feedback-viewer.component.*  # TASK-305: modale feedback + diario
+backend/
+  controllers/therapistControllers.js    # TASK-305: aggiunto getPatientCards()
+  routes/therapistRoutes.js              # TASK-305: GET /patients/:id/cards
 ```

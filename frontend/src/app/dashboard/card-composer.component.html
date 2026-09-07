@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Nuova Scheda — {{ patient.first_name }} {{ patient.last_name }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="form">
+    <ion-item lines="outline" class="ion-margin-bottom">
+      <ion-label position="stacked">Titolo *</ion-label>
+      <ion-input formControlName="title" placeholder="Es. Protocollo Spalla — settimana 3"></ion-input>
+    </ion-item>
+
+    <ion-item lines="outline" class="ion-margin-bottom">
+      <ion-label position="stacked">Note / Obiettivo</ion-label>
+      <ion-textarea formControlName="notes" rows="2" placeholder="Obiettivi clinici o indicazioni..."></ion-textarea>
+    </ion-item>
+
+    <div class="exercises-header ion-margin-top ion-margin-bottom" style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">Esercizi</h3>
+      <ion-button fill="outline" size="small" (click)="addExercise()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Aggiungi Esercizio
+      </ion-button>
+    </div>
+
+    <div formArrayName="exercises">
+      @for (ex of exercises.controls; track $index) {
+        <ion-card [formGroupName]="$index" class="ion-no-margin ion-margin-bottom">
+          <ion-card-content>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong>Esercizio #{{ $index + 1 }}</strong>
+              <ion-button fill="clear" color="danger" size="small" (click)="removeExercise($index)">
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+
+            <ion-item lines="outline" class="ion-margin-bottom">
+              <ion-label position="stacked">Nome Esercizio *</ion-label>
+              <ion-input formControlName="name" placeholder="Es. Squat isometrico"></ion-input>
+            </ion-item>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+              <ion-item lines="outline">
+                <ion-label position="stacked">Serie</ion-label>
+                <ion-input type="number" formControlName="sets"></ion-input>
+              </ion-item>
+              <ion-item lines="outline">
+                <ion-label position="stacked">Ripetizioni</ion-label>
+                <ion-input formControlName="reps_or_duration"></ion-input>
+              </ion-item>
+              <ion-item lines="outline">
+                <ion-label position="stacked">Recupero (s)</ion-label>
+                <ion-input type="number" formControlName="rest_seconds"></ion-input>
+              </ion-item>
+            </div>
+            
+            <ion-item lines="outline" class="ion-margin-top">
+              <ion-label position="stacked">Note posturali</ion-label>
+              <ion-textarea formControlName="posture_notes" rows="1" placeholder="Es. Schiena dritta..."></ion-textarea>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      }
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer class="ion-padding" style="background: #fff; border-top: 1px solid #e0e0e0;">
+  <ion-button expand="block" [disabled]="!canSubmit" (click)="submit()">
+    @if (saving) {
+      <ion-spinner name="crescent" slot="start"></ion-spinner>
+      Salvataggio...
+    } @else {
+      <ion-icon name="barbell-outline" slot="start"></ion-icon>
+      CREA E ASSEGNA SCHEDA
+    }
+  </ion-button>
+</ion-footer>
