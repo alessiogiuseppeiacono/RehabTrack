@@ -1,4 +1,4 @@
-# 🧠 AI_MEMORY.md — RehabTrack (Sviluppatore B, branch `feature/sprint3-tasks-502-503`)
+# 🧠 AI_MEMORY.md — RehabTrack (branch `feature/sprint4-task-303-therapist-dashboard`)
 
 > Cervello esterno dell'agente. Leggere PRIMA di scrivere codice e aggiornare DOPO ogni task.
 > Regole operative: vedere `AGENTS.md` (lazy senior dev — riusare > riscrivere, diff minimo).
@@ -22,6 +22,14 @@
 | TASK-502 — Galleria Diario Posturale (Tab Camera) | ✅ | FAB, griglia 2 col, persistenza `localStorage`, deletePhoto, modal preview full-screen |
 | TASK-503 — Mappa Leaflet (Tab Mappa) | ✅ | `L.map()` in `ionViewDidEnter`, OSM tiles, marker Centro di Riabilitazione, fix icone, invalidateSize |
 | TASK-504 — GPS + Geolocalizzazione | ✅ | `Geolocation.getCurrentPosition`, marker utente, cerchio accuratezza, fallback silenzioso su Palermo |
+
+## 📌 Stato Sprint 4 (Sviluppatore A) — branch `feature/sprint4-task-303-therapist-dashboard`
+
+| Task | Stato | Note |
+| :--- | :--- | :--- |
+| TASK-303 — Dashboard Desktop Fisioterapista | ✅ | `TherapistService`, layout master-detail CSS Grid, lista pazienti con filtro, storico log sessioni |
+| TASK-304 — Compositore Schede Esercizi | ⬜ | Prossimo task — pulsante placeholder già nella dashboard |
+| TASK-305 — Vista Feedback Dolore & Diario Posturale | ⬜ | Dipende da TASK-303 |
 
 ---
 
@@ -61,6 +69,15 @@
    - CSS Leaflet importato in `global.scss`.
    - GPS: `Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 })`; marker utente + cerchio accuratezza; fallback silenzioso su Palermo.
    - `ngOnDestroy()` → `this.map.remove()` evita "Map container already initialized".
+10. **TherapistService & Dashboard (TASK-303)**:
+    - `TherapistService` in `services/therapist.service.ts` — stesso pattern di `PatientService` (inject, URL assoluti, Observable).
+    - Interfacce: `Patient`, `TherapistCard`, `PatientLog` — allineate al backend SQLite.
+    - Dashboard: **CSS Grid a 2 colonne** (`var(--master-width): 320px` + `1fr`); collasso a singola colonna su ≤768px.
+    - Filtro ricerca: filtro **locale** sull'array `patients[]` già caricato (nessuna chiamata HTTP aggiuntiva — YAGNI).
+    - Selezione paziente: chiama `getPatientLogs(id)` on-demand; guard `finalize()` + `cdr.detectChanges()` (pattern zoneless identico a Tab1).
+    - Evidenziazione dolore critico: `pain_level > 7` → classe `.pain-critical` (rosso), allineata a specifica TASK-305.
+    - Pulsanti TASK-304 e TASK-305 già presenti nella UI ma `[disabled]="true"` con `title` esplicativo.
+    - `ng build --configuration=development` ✅ (8.2s, no errori, chunk `dashboard.page` 45.9 kB).
 
 ---
 
@@ -101,7 +118,17 @@ frontend/src/global.scss       # CSS globali + import leaflet/dist/leaflet.css
 
 ## ✅ Checklist pre-commit (per ogni task)
 
-- [ ] Commenti `// TASK-5xx:` sulle parti implementate
+- [ ] Commenti `// TASK-3xx/4xx/5xx:` sulle parti implementate
 - [ ] `ng build` senza errori; `ng test` passa
 - [ ] URL assoluti, `addIcons`, `standalone: true` rispettati
 - [ ] Diff minimo (niente astrazioni non richieste)
+
+## 🌳 File aggiornati Sprint 4
+
+```
+frontend/src/app/
+  services/therapist.service.ts    # TASK-303: TherapistService (getPatients, getPatientLogs, createPatient)
+  dashboard/dashboard.page.ts      # TASK-303: sostituisce placeholder — master-detail logic
+  dashboard/dashboard.page.html    # TASK-303: layout CSS Grid 2 colonne
+  dashboard/dashboard.page.scss    # TASK-303: stili master-detail, avatar, log cards, responsive
+```

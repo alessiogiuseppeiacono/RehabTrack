@@ -1,0 +1,226 @@
+﻿<!-- TASK-303: Dashboard Desktop Fisioterapista — layout master-detail a 2 colonne -->
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <ion-icon name="pulse-outline" style="margin-right:8px;vertical-align:middle"></ion-icon>
+      RehabTrack — Dashboard Fisioterapista
+    </ion-title>
+    <!-- TASK-303: pulsante logout nella toolbar -->
+    <ion-button slot="end" fill="clear" color="medium" (click)="logout()" id="btn-logout">
+      <ion-icon slot="start" name="log-out-outline"></ion-icon>
+      Esci
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="dashboard-layout">
+
+    <!-- ═══════════════════════════════════════════════════════
+         COLONNA SINISTRA — Master: lista pazienti
+    ═══════════════════════════════════════════════════════ -->
+    <aside class="panel-master">
+      <div class="panel-master-header">
+        <h2 class="panel-title">
+          <ion-icon name="people-outline"></ion-icon>
+          Pazienti
+        </h2>
+
+        <!-- TASK-303: barra di ricerca filtro locale -->
+        <ion-searchbar
+          id="search-patients"
+          placeholder="Cerca paziente o patologia…"
+          [debounce]="200"
+          (ionInput)="onSearch($event)"
+          animated="true">
+        </ion-searchbar>
+      </div>
+
+      <!-- Loading lista -->
+      @if (loadingPatients) {
+        <div class="state-center">
+          <ion-spinner name="crescent"></ion-spinner>
+          <ion-text color="medium"><p>Caricamento pazienti…</p></ion-text>
+        </div>
+      }
+
+      <!-- Errore lista -->
+      @if (!loadingPatients && patientsError) {
+        <div class="state-center">
+          <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+          <ion-text color="danger"><p>{{ patientsError }}</p></ion-text>
+        </div>
+      }
+
+      <!-- Lista vuota -->
+      @if (!loadingPatients && !patientsError && filteredPatients.length === 0) {
+        <div class="state-center">
+          <ion-icon name="person-outline" size="large" color="medium"></ion-icon>
+          <ion-text color="medium">
+            <p>{{ searchQuery ? 'Nessun paziente trovato' : 'Nessun paziente associato' }}</p>
+          </ion-text>
+        </div>
+      }
+
+      <!-- TASK-303: lista pazienti cliccabili -->
+      @if (!loadingPatients && !patientsError && filteredPatients.length > 0) {
+        <ion-list lines="none" class="patients-list">
+          @for (patient of filteredPatients; track patient.id) {
+            <ion-item
+              button
+              detail="false"
+              [class.patient-active]="selectedPatient?.id === patient.id"
+              (click)="selectPatient(patient)"
+              [id]="'patient-item-' + patient.id">
+              <!-- Iniziali avatar -->
+              <div slot="start" class="avatar">
+                {{ patient.first_name[0] }}{{ patient.last_name[0] }}
+              </div>
+              <ion-label>
+                <h3>{{ patient.first_name }} {{ patient.last_name }}</h3>
+                <p>
+                  <ion-icon name="body-outline" style="font-size:12px;vertical-align:middle"></ion-icon>
+                  {{ patient.pathology || 'Patologia non specificata' }}
+                </p>
+              </ion-label>
+              <ion-icon
+                slot="end"
+                name="chevron-forward-outline"
+                color="medium"
+                [style.opacity]="selectedPatient?.id === patient.id ? '1' : '0.3'">
+              </ion-icon>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════
+         COLONNA DESTRA — Detail: dettaglio paziente selezionato
+    ═══════════════════════════════════════════════════════ -->
+    <main class="panel-detail">
+
+      <!-- TASK-303: empty state se nessun paziente selezionato -->
+      @if (!selectedPatient) {
+        <div class="state-center empty-detail">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <ion-text color="medium">
+            <h2>Seleziona un paziente</h2>
+            <p>Scegli un paziente dalla lista per visualizzarne il profilo clinico e lo storico sessioni.</p>
+          </ion-text>
+        </div>
+      }
+
+      <!-- TASK-303: dettaglio paziente -->
+      @if (selectedPatient) {
+        <!-- Header profilo -->
+        <div class="detail-header">
+          <div class="detail-avatar">
+            {{ selectedPatient.first_name[0] }}{{ selectedPatient.last_name[0] }}
+          </div>
+          <div class="detail-info">
+            <h1 class="detail-name">{{ selectedPatient.first_name }} {{ selectedPatient.last_name }}</h1>
+            <p class="detail-email">{{ selectedPatient.email }}</p>
+            @if (selectedPatient.pathology) {
+              <ion-chip color="primary" class="pathology-chip">
+                <ion-icon name="body-outline"></ion-icon>
+                <ion-label>{{ selectedPatient.pathology }}</ion-label>
+              </ion-chip>
+            }
+          </div>
+          <!-- TASK-303: pulsanti azione per TASK-304 e TASK-305 -->
+          <div class="detail-actions">
+            <ion-button
+              id="btn-new-card"
+              color="primary"
+              [disabled]="true"
+              title="Disponibile con TASK-304">
+              <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+              Nuova Scheda
+            </ion-button>
+            <ion-button
+              id="btn-view-feedback"
+              color="secondary"
+              fill="outline"
+              [disabled]="true"
+              title="Disponibile con TASK-305">
+              <ion-icon slot="start" name="analytics-outline"></ion-icon>
+              Vedi Feedback & Diario
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Sezione storico sessioni -->
+        <div class="detail-section">
+          <h2 class="section-title">
+            <ion-icon name="time-outline"></ion-icon>
+            Storico sessioni
+          </h2>
+
+          <!-- Loading log -->
+          @if (loadingLogs) {
+            <div class="state-center">
+              <ion-spinner name="crescent"></ion-spinner>
+              <ion-text color="medium"><p>Caricamento sessioni…</p></ion-text>
+            </div>
+          }
+
+          <!-- Errore log -->
+          @if (!loadingLogs && logsError) {
+            <div class="state-center">
+              <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+              <ion-text color="danger"><p>{{ logsError }}</p></ion-text>
+            </div>
+          }
+
+          <!-- Nessun log -->
+          @if (!loadingLogs && !logsError && patientLogs.length === 0) {
+            <div class="state-center logs-empty">
+              <ion-icon name="calendar-outline" size="large" color="medium"></ion-icon>
+              <ion-text color="medium"><p>Nessuna sessione registrata</p></ion-text>
+            </div>
+          }
+
+          <!-- TASK-303: griglia log sessioni -->
+          @if (!loadingLogs && !logsError && patientLogs.length > 0) {
+            <div class="logs-grid">
+              @for (log of patientLogs; track log.id) {
+                <ion-card class="log-card" [class.pain-critical]="isPainCritical(log.pain_level)">
+                  <ion-card-header>
+                    <ion-card-title class="log-card-title">{{ log.card_title }}</ion-card-title>
+                    <ion-note>{{ log.completed_at | date:'dd/MM/yyyy HH:mm' }}</ion-note>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <div class="log-meta">
+                      <!-- Durata -->
+                      <div class="log-stat">
+                        <ion-icon name="time-outline" color="primary"></ion-icon>
+                        <span>{{ formatDuration(log.duration_seconds) }}</span>
+                      </div>
+                      <!-- Livello dolore -->
+                      @if (log.pain_level !== null) {
+                        <div class="log-stat">
+                          <ion-icon
+                            name="heart-outline"
+                            [color]="isPainCritical(log.pain_level) ? 'danger' : 'success'">
+                          </ion-icon>
+                          <ion-badge [color]="isPainCritical(log.pain_level) ? 'danger' : 'success'">
+                            Dolore {{ log.pain_level }}/10
+                          </ion-badge>
+                        </div>
+                      }
+                    </div>
+                    <!-- Note paziente -->
+                    @if (log.patient_notes) {
+                      <ion-note class="log-notes">💬 {{ log.patient_notes }}</ion-note>
+                    }
+                  </ion-card-content>
+                </ion-card>
+              }
+            </div>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</ion-content>
