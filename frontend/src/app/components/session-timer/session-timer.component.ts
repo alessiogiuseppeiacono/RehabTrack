@@ -1,4 +1,4 @@
-﻿import { Component, Output, EventEmitter, OnDestroy } from '@angular/core';
+import { Component, Output, EventEmitter, OnDestroy, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -31,23 +31,26 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
     <!-- Timer display + controlli (nascosto nella fase report) -->
     @if (state !== 'report') {
       <div class="session-timer">
-        <span class="time" [class.running]="state === 'running'">{{ formatted }}</span>
+        <div class="time-wrap">
+          <span class="time" [class.running]="state === 'running'">{{ formatted }}</span>
+          <span class="time-label">{{ state === 'running' ? 'In corso' : state === 'paused' ? 'In pausa' : 'Pronto' }}</span>
+        </div>
 
         <div class="controls">
           @if (state !== 'running') {
-            <ion-button size="small" fill="outline" color="primary" (click)="start()">
-              <ion-icon slot="icon-only" name="play-outline"></ion-icon>
-            </ion-button>
+            <button class="ctrl-btn play" (click)="start()" aria-label="Avvia">
+              <ion-icon name="play-outline"></ion-icon>
+            </button>
           }
           @if (state === 'running') {
-            <ion-button size="small" fill="outline" color="warning" (click)="pause()">
-              <ion-icon slot="icon-only" name="pause-outline"></ion-icon>
-            </ion-button>
+            <button class="ctrl-btn pause" (click)="pause()" aria-label="Pausa">
+              <ion-icon name="pause-outline"></ion-icon>
+            </button>
           }
           @if (state !== 'idle') {
-            <ion-button size="small" fill="clear" color="danger" (click)="stopForReport()">
-              <ion-icon slot="icon-only" name="stop-outline"></ion-icon>
-            </ion-button>
+            <button class="ctrl-btn stop" (click)="stopForReport()" aria-label="Termina">
+              <ion-icon name="stop-outline"></ion-icon>
+            </button>
           }
         </div>
       </div>
@@ -56,9 +59,7 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
     <!-- TASK-404: form report fine sessione — visibile solo nello stato 'report' -->
     @if (state === 'report') {
       <div class="report-form">
-        <ion-text color="medium">
-          <p class="report-header">Sessione completata — inserisci il tuo feedback</p>
-        </ion-text>
+        <p class="report-header">Sessione completata — lascia il tuo feedback</p>
 
         <!-- Slider livello dolore (obbligatorio, 1-10) -->
         <ion-item lines="none" class="report-item">
@@ -106,21 +107,65 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
     .session-timer {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1.25rem;
+    }
+    .time-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
     .time {
       font-variant-numeric: tabular-nums;
-      font-size: 1.75rem;
-      font-weight: 700;
-      min-width: 4.5rem;
-      color: var(--ion-color-medium);
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #94a3b8;
+      transition: color 0.35s ease;
     }
     .time.running {
       color: var(--ion-color-primary);
     }
+    .time-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
     .controls {
       display: flex;
-      gap: 0.25rem;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    .ctrl-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    .ctrl-btn:active { transform: scale(0.93); }
+    .ctrl-btn.play {
+      background: var(--ion-color-primary);
+      color: #fff;
+    }
+    .ctrl-btn.play:hover { box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.35); }
+    .ctrl-btn.pause {
+      background: #fff7ed;
+      color: #f59e0b;
+      border: 1.5px solid #fed7aa;
+    }
+    .ctrl-btn.stop {
+      background: #fff1f2;
+      color: #f43f5e;
+      border: 1.5px solid #fecdd3;
     }
     /* TASK-404: stili form report */
     .report-form {
@@ -130,7 +175,9 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
     }
     .report-header {
       font-size: 0.9rem;
-      margin: 0 0 0.5rem;
+      font-weight: 600;
+      color: #64748b;
+      margin: 0 0 0.75rem;
     }
     .report-item {
       --background: transparent;
@@ -151,6 +198,9 @@ export class SessionTimerComponent implements OnDestroy {
    * Il tipo è cambiato da number a SessionReport per includere il feedback dolore.
    */
   @Output() finished = new EventEmitter<SessionReport>();
+
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly ngZone = inject(NgZone);
 
   elapsed = 0;
   state: TimerState = 'idle';
@@ -177,20 +227,28 @@ export class SessionTimerComponent implements OnDestroy {
   start(): void {
     this.state = 'running';
     this.clearTimer();
-    this.intervalId = setInterval(() => {
-      this.elapsed++;
-    }, 1000);
+    this.ngZone.runOutsideAngular(() => {
+      this.intervalId = setInterval(() => {
+        this.ngZone.run(() => {
+          this.elapsed++;
+          this.cdr.markForCheck();
+        });
+      }, 1000);
+    });
+    this.cdr.markForCheck();
   }
 
   pause(): void {
     this.state = 'paused';
     this.clearTimer();
+    this.cdr.markForCheck();
   }
 
   // TASK-404: "Termina" non emette più direttamente — apre il form report.
   stopForReport(): void {
     this.clearTimer();
     this.state = 'report';
+    this.cdr.markForCheck();
   }
 
   // TODO (TASK-404): Testare visivamente il form del dolore e l'invio del payload non appena il TASK-304 (Compositore Schede) genererà dati reali nello Sprint 3.
@@ -206,6 +264,7 @@ export class SessionTimerComponent implements OnDestroy {
     this.painLevel = 5;
     this.patientNotes = '';
     this.state = 'idle';
+    this.cdr.markForCheck();
   }
 
   private clearTimer(): void {
