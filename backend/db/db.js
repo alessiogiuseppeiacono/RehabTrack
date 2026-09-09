@@ -71,9 +71,9 @@ db.serialize(() => {
     if (!hasStartDate) {
       console.log("Migrazione: Aggiunta start_date ed end_date a cards");
       db.serialize(() => {
-        db.run("ALTER TABLE cards ADD COLUMN start_date DATE DEFAULT (CURRENT_DATE)");
-        db.run("ALTER TABLE cards ADD COLUMN end_date DATE DEFAULT NULL");
-        db.run("UPDATE cards SET start_date = date(created_at)");
+        db.run("ALTER TABLE cards ADD COLUMN start_date DATE");
+        db.run("ALTER TABLE cards ADD COLUMN end_date DATE");
+        db.run("UPDATE cards SET start_date = DATE('now') WHERE start_date IS NULL");
       });
     }
   });
