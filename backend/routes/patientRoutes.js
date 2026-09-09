@@ -2,7 +2,7 @@
 
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { getTodayCard, saveSessionLog } = require('../controllers/patientControllers');
+const { getTodayCard, saveSessionLog, getSessionLogs } = require('../controllers/patientControllers');
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router.use(verifyToken, requireRole('paziente'));
 
 router.get('/today-card', getTodayCard);
 router.post('/session-logs', saveSessionLog);
+router.get('/session-logs', getSessionLogs);
 
 module.exports = router;

@@ -38,6 +38,18 @@ export interface SessionLog {
   patient_notes?: string;
 }
 
+export interface SessionLogResponse {
+  id: number;
+  card_id: number;
+  patient_id: number;
+  completed_at: string;
+  duration_seconds: number;
+  pain_level: number | null;
+  patient_notes: string;
+  photo_base64: string | null;
+  card_title: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PatientService {
   private readonly http = inject(HttpClient);
@@ -49,5 +61,9 @@ export class PatientService {
 
   saveSessionLog(log: SessionLog): Observable<unknown> {
     return this.http.post(`${this.baseUrl}/session-logs`, log);
+  }
+
+  getSessionLogs(): Observable<SessionLogResponse[]> {
+    return this.http.get<SessionLogResponse[]>(`${this.baseUrl}/session-logs`);
   }
 }

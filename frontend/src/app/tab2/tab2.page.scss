@@ -75,3 +75,85 @@
   height: 100%;
   object-fit: contain;
 }
+
+// ── Sessioni ─────────────────────────────────────────────────────────────────
+.sessions-container {
+  padding: 1rem;
+}
+
+.session-card {
+  margin: 0 0 1rem 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+  ion-card-header {
+    padding-bottom: 0.5rem;
+  }
+}
+
+.session-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  ion-card-subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.session-indicators {
+  margin-bottom: 0.8rem;
+  font-size: 0.95rem;
+}
+
+.session-notes {
+  background: var(--ion-color-light);
+  padding: 0.8rem;
+  border-radius: 8px;
+  
+  strong {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    margin: 0.3rem 0 0 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--ion-color-dark);
+  }
+}
+
+// ── Filtri ───────────────────────────────────────────────────────────────────
+.filters-container {
+  background: var(--ion-color-light);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+  ion-searchbar {
+    padding-bottom: 0;
+  }
+}
+
+.chips-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1rem;
+  gap: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  
+  // Nasconde la scrollbar su webkit
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  ion-chip {
+    margin: 0;
+    flex-shrink: 0;
+  }
+}

@@ -86,4 +86,30 @@ async function saveSessionLog(req, res) {
   res.status(201).json({ id, card_id, pain_level: parsedPainLevel ?? null, patient_notes: patient_notes || '', duration_seconds: parsedDuration ?? 0 });
 }
 
-module.exports = { getTodayCard, saveSessionLog };
+async function getSessionLogs(req, res) {
+  const query = `
+    SELECT 
+      sl.id,
+      sl.card_id,
+      sl.patient_id,
+      sl.completed_at,
+      sl.duration_seconds,
+      sl.pain_level,
+      sl.patient_notes,
+      sl.photo_base64,
+      c.title AS card_title
+    FROM session_logs sl
+    JOIN cards c ON sl.card_id = c.id
+    WHERE sl.patient_id = ?
+    ORDER BY sl.completed_at DESC
+  `;
+  
+  db.all(query, [req.user.id], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Errore nel recupero dello storico sessioni' });
+    }
+    res.status(200).json(rows || []);
+  });
+}
+
+module.exports = { getTodayCard, saveSessionLog, getSessionLogs };

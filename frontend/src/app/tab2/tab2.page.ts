@@ -1,15 +1,21 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ViewWillEnter } from '@ionic/angular';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonGrid, IonRow, IonCol, IonImg,
   IonFab, IonFabButton, IonIcon,
-  IonButton, IonModal
+  IonButton, IonModal, IonSegment, IonSegmentButton, IonLabel,
+  IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+  IonBadge, IonRefresher, IonRefresherContent, IonSpinner, IonText,
+  IonSearchbar, IonChip
 } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { addIcons } from 'ionicons';
-import { camera, trashOutline, closeOutline } from 'ionicons/icons';
+import { camera, trashOutline, closeOutline, documentTextOutline, searchOutline } from 'ionicons/icons';
+import { PatientService, SessionLogResponse } from '../services/patient.service';
+import { finalize } from 'rxjs';
 
 // TASK-502: chiave localStorage per la persistenza della galleria posturale
 const STORAGE_KEY = 'rehabtrack_photos';
@@ -24,10 +30,22 @@ const STORAGE_KEY = 'rehabtrack_photos';
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonGrid, IonRow, IonCol, IonImg,
     IonFab, IonFabButton, IonIcon,
-    IonButton, IonModal
-  ]
+    IonButton, IonModal, IonSegment, IonSegmentButton, IonLabel,
+    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonBadge, IonRefresher, IonRefresherContent, IonSpinner, IonText,
+    IonSearchbar, IonChip
+  ],
+  providers: [DatePipe]
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, ViewWillEnter {
+
+  currentSegment: 'sessions' | 'photos' = 'sessions';
+  allSessionLogs: SessionLogResponse[] = [];
+  sessionLogs: SessionLogResponse[] = [];
+  loadingLogs = false;
+
+  searchQuery = '';
+  activeFilter: 'all' | 'mild' | 'moderate' | 'intense' | 'notes' = 'all';
 
   // TASK-502: array foto (DataUrl); caricato da localStorage all'avvio
   photos: string[] = [];
@@ -35,9 +53,12 @@ export class Tab2Page implements OnInit {
   // TASK-502: foto selezionata per l'anteprima full-screen
   selectedPhoto: string | null = null;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private patientService: PatientService
+  ) {
     // TASK-502: 'camera' (solid) usato nel FAB per massima visibilità
-    addIcons({ camera, trashOutline, closeOutline });
+    addIcons({ camera, trashOutline, closeOutline, documentTextOutline, searchOutline });
   }
 
   // TASK-502: ricarica la galleria dal localStorage all'inizializzazione
@@ -50,6 +71,89 @@ export class Tab2Page implements OnInit {
         this.photos = [];
       }
     }
+  }
+
+  ionViewWillEnter(): void {
+    this.loadSessionLogs();
+  }
+
+  segmentChanged(event: any): void {
+    this.currentSegment = event.detail.value;
+    this.cdr.detectChanges();
+  }
+
+  loadSessionLogs(event?: any): void {
+    if (!event) this.loadingLogs = true;
+    
+    this.patientService.getSessionLogs().pipe(
+      finalize(() => {
+        this.loadingLogs = false;
+        if (event) {
+          event.target.complete();
+        }
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (logs) => {
+        this.allSessionLogs = logs;
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error('Errore nel recupero dei log di sessione', err);
+      }
+    });
+  }
+
+  onSearchChange(event: any): void {
+    this.searchQuery = event.detail.value || '';
+    this.applyFilters();
+  }
+
+  setFilter(filter: 'all' | 'mild' | 'moderate' | 'intense' | 'notes'): void {
+    this.activeFilter = filter;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const query = this.searchQuery.toLowerCase().trim();
+
+    this.sessionLogs = this.allSessionLogs.filter(log => {
+      // 1. Text search on title and notes
+      const titleMatch = log.card_title?.toLowerCase().includes(query) ?? false;
+      const notesMatch = log.patient_notes?.toLowerCase().includes(query) ?? false;
+      if (query && !titleMatch && !notesMatch) {
+        return false;
+      }
+
+      // 2. Chip filter
+      if (this.activeFilter === 'mild') {
+        if (log.pain_level === null || log.pain_level > 3) return false;
+      } else if (this.activeFilter === 'moderate') {
+        if (log.pain_level === null || log.pain_level < 4 || log.pain_level > 6) return false;
+      } else if (this.activeFilter === 'intense') {
+        if (log.pain_level === null || log.pain_level < 7) return false;
+      } else if (this.activeFilter === 'notes') {
+        if (!log.patient_notes || log.patient_notes.trim() === '') return false;
+      }
+
+      return true;
+    });
+
+    this.cdr.detectChanges();
+  }
+
+  getPainColor(level: number | null): string {
+    if (level === null) return 'medium';
+    if (level <= 3) return 'success';
+    if (level <= 6) return 'warning';
+    return 'danger';
+  }
+
+  formatDuration(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m > 0) return `${m} min ${s} sec`;
+    return `${s} sec`;
   }
 
   // TASK-502: scatto/selezione foto — platform-first:

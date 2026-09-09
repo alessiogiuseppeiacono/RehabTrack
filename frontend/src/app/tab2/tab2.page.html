@@ -11,7 +11,96 @@
     </ion-toolbar>
   </ion-header>
 
-  <!-- TASK-502: Griglia foto a due colonne con click per preview e cestino per eliminazione -->
+  <ion-segment [value]="currentSegment" (ionChange)="segmentChanged($event)" class="ion-padding-horizontal ion-margin-top">
+    <ion-segment-button value="sessions">
+      <ion-label>Sessioni</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="photos">
+      <ion-label>Foto</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  @if (currentSegment === 'sessions') {
+    <div class="filters-container">
+      <ion-searchbar 
+        placeholder="Cerca scheda o note..." 
+        [value]="searchQuery" 
+        (ionInput)="onSearchChange($event)"
+        animated="true">
+      </ion-searchbar>
+      
+      <div class="chips-scroll">
+        <ion-chip [outline]="activeFilter !== 'all'" [color]="activeFilter === 'all' ? 'primary' : 'medium'" (click)="setFilter('all')">
+          <ion-label>Tutti</ion-label>
+        </ion-chip>
+        <ion-chip [outline]="activeFilter !== 'mild'" [color]="activeFilter === 'mild' ? 'success' : 'medium'" (click)="setFilter('mild')">
+          <ion-label>Lieve (0-3)</ion-label>
+        </ion-chip>
+        <ion-chip [outline]="activeFilter !== 'moderate'" [color]="activeFilter === 'moderate' ? 'warning' : 'medium'" (click)="setFilter('moderate')">
+          <ion-label>Moderato (4-6)</ion-label>
+        </ion-chip>
+        <ion-chip [outline]="activeFilter !== 'intense'" [color]="activeFilter === 'intense' ? 'danger' : 'medium'" (click)="setFilter('intense')">
+          <ion-label>Intenso (7-10)</ion-label>
+        </ion-chip>
+        <ion-chip [outline]="activeFilter !== 'notes'" [color]="activeFilter === 'notes' ? 'tertiary' : 'medium'" (click)="setFilter('notes')">
+          <ion-label>Con Note</ion-label>
+        </ion-chip>
+      </div>
+    </div>
+
+    <ion-refresher slot="fixed" (ionRefresh)="loadSessionLogs($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+    <div class="sessions-container">
+      @if (loadingLogs && allSessionLogs.length === 0) {
+        <div class="empty-state">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Caricamento in corso...</p>
+        </div>
+      } @else if (allSessionLogs.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+          <p>Nessuna sessione registrata finora.</p>
+        </div>
+      } @else if (sessionLogs.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="search-outline" class="empty-icon"></ion-icon>
+          <p>Nessuna sessione corrisponde ai filtri selezionati.</p>
+        </div>
+      } @else {
+        @for (log of sessionLogs; track log.id) {
+          <ion-card class="session-card">
+            <ion-card-header>
+              <div class="session-header-top">
+                <ion-card-subtitle>{{ log.completed_at | date:'dd/MM/yyyy HH:mm' }}</ion-card-subtitle>
+                <ion-badge [color]="getPainColor(log.pain_level)">
+                  Dolore: {{ log.pain_level !== null ? log.pain_level : 'N/D' }}
+                </ion-badge>
+              </div>
+              <ion-card-title>{{ log.card_title }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="session-indicators">
+                <ion-text color="medium">
+                  <strong>Durata:</strong> {{ formatDuration(log.duration_seconds) }}
+                </ion-text>
+              </div>
+              @if (log.patient_notes) {
+                <div class="session-notes">
+                  <strong>Note:</strong>
+                  <p>{{ log.patient_notes }}</p>
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      }
+    </div>
+  }
+
+  @if (currentSegment === 'photos') {
+    <!-- TASK-502: Griglia foto a due colonne con click per preview e cestino per eliminazione -->
   @if (photos.length === 0) {
     <div class="empty-state">
       <ion-icon name="camera-outline" class="empty-icon"></ion-icon>
@@ -76,5 +165,6 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+  }
 
 </ion-content>
