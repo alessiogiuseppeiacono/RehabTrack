@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" [scrollY]="true" class="ion-padding">
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">La Mia Scheda</ion-title>
@@ -42,79 +42,259 @@
   @if (!loading && !error && card && exercises.length > 0) {
     <div class="page-content">
 
-      <!-- Card intestazione protocollo -->
-      <div class="protocol-card">
-        <div class="protocol-card__inner">
-          <div class="protocol-icon">
-            <ion-icon name="fitness-outline"></ion-icon>
-          </div>
-          <div class="protocol-info">
-            <h1 class="protocol-title">{{ card.title }}</h1>
-            <span class="exercise-pill">{{ exercises.length }} esercizi oggi</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- TASK-403: cronometro di sessione -->
-      <div class="section-card session-card">
-        <div class="section-card__header">
-          <ion-icon name="timer-outline" class="section-icon"></ion-icon>
-          <span class="section-title">Timer di sessione</span>
-        </div>
-        <div class="section-card__body">
-          <app-session-timer (finished)="onSessionFinished($event)"></app-session-timer>
-          @if (sessionLogState === 'saving') {
-            <p class="session-feedback saving">Salvataggio in corso...</p>
-          }
-          @if (sessionLogState === 'saved') {
-            <p class="session-feedback saved">✓ Sessione registrata con successo</p>
-          }
-          @if (sessionLogState === 'error') {
-            <p class="session-feedback error">✕ Errore nel salvataggio della sessione</p>
-          }
-        </div>
-      </div>
-
-      <!-- TASK-402: lista esercizi -->
-      <div class="exercises-section">
-        <h2 class="exercises-heading">Esercizi</h2>
-        <div class="exercise-list">
-          @for (ex of exercises; track ex.id) {
-            <div class="exercise-card">
-              <div class="exercise-card__header">
-                <div class="exercise-avatar">
-                  <ion-icon name="barbell-outline"></ion-icon>
-                </div>
-                <span class="exercise-name">{{ ex.name }}</span>
+      @switch (workoutState) {
+        
+        @case ('overview') {
+          <!-- Card intestazione protocollo -->
+          <div class="protocol-card">
+            <div class="protocol-card__inner">
+              <div class="protocol-icon">
+                <ion-icon name="fitness-outline"></ion-icon>
               </div>
-
-              <div class="chips-row">
-                <span class="chip chip--primary">
-                  <ion-icon name="repeat-outline"></ion-icon>
-                  {{ ex.sets }} serie × {{ ex.reps_or_duration }}
-                </span>
-                <span class="chip chip--tertiary">
-                  <ion-icon name="timer-outline"></ion-icon>
-                  Recupero {{ ex.rest_seconds }}s
-                </span>
+              <div class="protocol-info">
+                @if (card.is_completed_today) {
+                  <ion-badge color="success" class="completed-badge" style="margin-bottom: 0.3rem; display: inline-flex; align-items: center; gap: 0.2rem;">
+                    <ion-icon name="checkmark-outline"></ion-icon> Completata oggi
+                  </ion-badge>
+                }
+                <h1 class="protocol-title">{{ card.title }}</h1>
+                <span class="exercise-pill">{{ exercises.length }} esercizi oggi</span>
               </div>
+            </div>
+          </div>
 
-              @if (ex.rest_seconds > 0) {
-                <div class="recovery-timer-wrap">
-                  <app-timer [durationSeconds]="ex.rest_seconds"></app-timer>
-                </div>
-              }
+          <div class="start-workout-wrap">
+            @if (card.is_completed_today) {
+              <ion-button expand="block" shape="round" color="secondary" fill="outline" class="btn-start" (click)="startWorkout()">
+                <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                Ripeti Allenamento
+              </ion-button>
+            } @else {
+              <ion-button expand="block" shape="round" color="primary" class="btn-start" (click)="startWorkout()">
+                <ion-icon slot="start" name="play-outline"></ion-icon>
+                Inizia Sessione
+              </ion-button>
+            }
+          </div>
 
-              @if (ex.posture_notes) {
-                <div class="posture-callout">
-                  <ion-icon name="document-text-outline"></ion-icon>
-                  <p>{{ ex.posture_notes }}</p>
+          <!-- Lista esercizi -->
+          <div class="exercises-section">
+            <h2 class="exercises-heading">Esercizi</h2>
+            <div class="exercise-list">
+              @for (ex of exercises; track ex.id) {
+                <div class="exercise-card">
+                  <div class="exercise-card__header">
+                    <div class="exercise-avatar">
+                      <ion-icon name="barbell-outline"></ion-icon>
+                    </div>
+                    <span class="exercise-name">{{ ex.name }}</span>
+                  </div>
+
+                  <div class="chips-row">
+                    <span class="chip chip--primary">
+                      <ion-icon name="repeat-outline"></ion-icon>
+                      {{ ex.sets }} serie × {{ ex.reps_or_duration }}
+                    </span>
+                    <span class="chip chip--tertiary">
+                      <ion-icon name="timer-outline"></ion-icon>
+                      Recupero {{ ex.rest_seconds }}s
+                    </span>
+                  </div>
+
+                  @if (ex.posture_notes) {
+                    <div class="posture-callout">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      <p>{{ ex.posture_notes }}</p>
+                    </div>
+                  }
                 </div>
               }
             </div>
-          }
-        </div>
-      </div>
+          </div>
+        }
+
+        @case ('prepare') {
+          <div class="runner-view">
+            <div class="runner-header">
+              <div class="runner-meta">
+                <span class="exercise-step">Prossimo Esercizio</span>
+                <span class="total-time">Tempo: {{ formatTime(totalElapsedSeconds) }}</span>
+              </div>
+              
+              <h2 class="exercise-name">Preparati!</h2>
+              <p class="prepare-subtitle">{{ currentExercise?.name }}</p>
+            </div>
+            
+            <div class="runner-timer-wrap">
+              <div class="circular-timer">
+                <span class="timer-digits">{{ countdownSeconds }}</span>
+              </div>
+            </div>
+
+            <div class="runner-actions">
+              <ion-button expand="block" color="medium" fill="outline" class="secondary-btn" (click)="skipPrepare()">
+                <ion-icon slot="start" name="play-forward-outline"></ion-icon>
+                Salta Preparazione
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        @case ('exercise') {
+          <div class="runner-view">
+            <div class="runner-header">
+              <div class="runner-meta">
+                <span class="exercise-step">ESERCIZIO {{ currentExerciseIndex + 1 }} DI {{ exercises.length }}</span>
+                <span class="total-time">Tempo: {{ formatTime(totalElapsedSeconds) }}</span>
+              </div>
+              
+              <div class="badge-wrap">
+                <span class="set-badge">Serie {{ currentSet }} / {{ currentExercise?.sets }}</span>
+              </div>
+
+              <h2 class="exercise-name">{{ currentExercise?.name }}</h2>
+
+              @if (currentExercise?.posture_notes) {
+                <div class="posture-box">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  <span>{{ currentExercise?.posture_notes }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="runner-timer-wrap">
+              @if (isTimeBased) {
+                <div class="circular-timer">
+                  <span class="timer-digits">{{ formatTime(countdownSeconds) }}</span>
+                </div>
+              } @else {
+                <div class="rep-timer">
+                  <span class="rep-digits">{{ currentExercise?.reps_or_duration }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="runner-actions">
+              @if (isTimeBased) {
+                <ion-button expand="block" [color]="isTimerRunning ? 'warning' : 'primary'" class="main-action-btn" (click)="toggleExerciseTimer()">
+                  <ion-icon slot="start" [name]="isTimerRunning ? 'pause-outline' : 'play-outline'"></ion-icon>
+                  {{ isTimerRunning ? 'Pausa' : 'Riprendi' }}
+                </ion-button>
+                <ion-button expand="block" fill="outline" class="secondary-btn" color="medium" (click)="skipExercise()">
+                  Termina Esercizio
+                </ion-button>
+              } @else {
+                <ion-button expand="block" color="primary" class="main-action-btn" (click)="completeSet()">
+                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                  Serie Completata
+                </ion-button>
+              }
+              <ion-button expand="block" fill="clear" color="danger" class="abandon-btn" (click)="abandonWorkout()">
+                Interrompi Allenamento
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        @case ('rest') {
+          <div class="runner-view">
+            <div class="runner-header">
+              <div class="runner-meta">
+                <span class="exercise-step">RECUPERO</span>
+                <span class="total-time">Tempo: {{ formatTime(totalElapsedSeconds) }}</span>
+              </div>
+              <h2 class="exercise-name">Pausa</h2>
+            </div>
+            
+            <div class="runner-timer-wrap">
+              <div class="circular-timer rest-timer">
+                <span class="timer-digits">{{ formatTime(countdownSeconds) }}</span>
+              </div>
+            </div>
+
+            <div class="runner-actions">
+              <ion-button expand="block" fill="outline" class="secondary-btn" color="medium" (click)="skipRest()">
+                <ion-icon slot="start" name="play-forward-outline"></ion-icon>
+                Salta Recupero
+              </ion-button>
+              <ion-button expand="block" fill="clear" color="danger" class="abandon-btn" (click)="abandonWorkout()">
+                Interrompi Allenamento
+              </ion-button>
+            </div>
+          </div>
+        }
+
+        @case ('feedback') {
+          <div class="runner-card feedback-card">
+            <div class="runner-card-header">
+              <span class="runner-card-progress">Sessione Terminata</span>
+              <span class="runner-card-time">Durata: {{ formatTime(totalElapsedSeconds) }}</span>
+            </div>
+
+            <div class="runner-body">
+              @if (isEarlyExit) {
+                <div class="early-exit-banner">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <span>Sessione interrotta prima del termine.</span>
+                </div>
+                <h2 class="runner-title">Allenamento Interrotto</h2>
+                <p class="feedback-subtitle">Per quale motivo hai interrotto l'allenamento? (es. troppo dolore, poco tempo, affaticamento)</p>
+              } @else {
+                <h2 class="runner-title">Ottimo Lavoro!</h2>
+                <p class="feedback-subtitle">Come ti sei sentito durante l'allenamento?</p>
+              }
+
+              <!-- Slider livello dolore -->
+              <ion-item lines="none" class="feedback-item">
+                <ion-label position="stacked" class="feedback-label">
+                  Livello di dolore: <strong>{{ painLevel }}</strong> / 10
+                </ion-label>
+                <ion-range min="1" max="10" step="1" snaps="true" color="danger" [(ngModel)]="painLevel"></ion-range>
+              </ion-item>
+              <ion-note class="range-hint" color="medium">1 = nessun dolore · 10 = dolore massimo</ion-note>
+
+              <!-- Note opzionali -->
+              <ion-item lines="none" class="feedback-item mt-3">
+                <ion-label position="stacked" class="feedback-label">Note (opzionale)</ion-label>
+                <ion-textarea
+                  placeholder="Descrivi come ti sei sentito..."
+                  [autoGrow]="true"
+                  [(ngModel)]="patientNotes"
+                ></ion-textarea>
+              </ion-item>
+            </div>
+
+            <div class="action-buttons-wrap">
+              <ion-button expand="block" shape="round" color="primary" [disabled]="sessionLogState === 'saving'" (click)="submitFeedback()">
+                <ion-icon slot="start" name="send-outline"></ion-icon>
+                Invia Feedback
+              </ion-button>
+              @if (sessionLogState === 'error') {
+                <p class="error-msg">Errore nel salvataggio. Riprova.</p>
+              }
+            </div>
+          </div>
+        }
+
+        @case ('completed') {
+          <div class="runner-card completed-card">
+            <div class="runner-body completed-body">
+              <div class="success-icon-wrap">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              </div>
+              <h2 class="runner-title">Sessione Registrata</h2>
+              <p class="completed-msg">Il tuo feedback è stato salvato con successo.</p>
+            </div>
+            
+            <div class="action-buttons-wrap">
+              <ion-button expand="block" shape="round" color="primary" fill="outline" (click)="resetToOverview()">
+                Torna alla Panoramica
+              </ion-button>
+            </div>
+          </div>
+        }
+
+      }
 
     </div>
   }

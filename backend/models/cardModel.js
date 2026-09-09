@@ -54,7 +54,9 @@ const Card = {
     return new Promise((resolve, reject) => {
       db.get(
         `SELECT * FROM cards
-         WHERE patient_id = ? AND DATE(created_at) = DATE('now','localtime')
+         WHERE patient_id = ?
+           AND date('now', 'localtime') >= date(start_date)
+           AND (end_date IS NULL OR date('now', 'localtime') <= date(end_date))
          ORDER BY created_at DESC LIMIT 1`,
         [patientId],
         (err, row) => {

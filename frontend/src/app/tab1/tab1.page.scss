@@ -11,12 +11,10 @@
     font-size: 3rem;
     margin-bottom: 0.75rem;
   }
-
   h2 {
     margin: 0.5rem 0 0.25rem;
     font-weight: 600;
   }
-
   p {
     margin: 0.25rem 0;
   }
@@ -24,10 +22,11 @@
 
 /* ── Page wrapper ─────────────────────────────── */
 .page-content {
-  padding: 1rem 1rem 2rem;
+  padding: 1rem 1rem calc(var(--ion-safe-area-bottom, 20px) + 90px);
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
 }
 
 /* ── Protocol intro card ──────────────────────── */
@@ -54,11 +53,7 @@
   border-radius: 14px;
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   flex-shrink: 0;
-
-  ion-icon {
-    font-size: 1.35rem;
-    color: #0284c7;
-  }
+  ion-icon { font-size: 1.35rem; color: #0284c7; }
 }
 
 .protocol-title {
@@ -80,50 +75,18 @@
   padding: 2px 10px;
 }
 
-/* ── Generic section card ─────────────────────── */
-.section-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
+.start-workout-wrap {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  .btn-start {
+    --box-shadow: 0 8px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+    font-weight: 700;
+    font-size: 1.05rem;
+    height: 3.2rem;
+  }
 }
 
-.section-card__header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.25rem 0.65rem;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.section-icon {
-  font-size: 1.15rem;
-  color: var(--ion-color-primary);
-}
-
-.section-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.section-card__body {
-  padding: 1rem 1.25rem;
-}
-
-/* ── Session feedback ─────────────────────────── */
-.session-feedback {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin: 0.6rem 0 0;
-
-  &.saving { color: #64748b; }
-  &.saved   { color: #16a34a; }
-  &.error   { color: #dc2626; }
-}
-
-/* ── Exercises section ────────────────────────── */
+/* ── Exercises overview list ──────────────────── */
 .exercises-heading {
   font-size: 0.75rem;
   font-weight: 700;
@@ -139,7 +102,6 @@
   gap: 0.85rem;
 }
 
-/* ── Individual exercise card ─────────────────── */
 .exercise-card {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -167,11 +129,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   flex-shrink: 0;
-
-  ion-icon {
-    font-size: 1.1rem;
-    color: var(--ion-color-primary);
-  }
+  ion-icon { font-size: 1.1rem; color: var(--ion-color-primary); }
 }
 
 .exercise-name {
@@ -187,7 +145,6 @@
   flex-wrap: wrap;
   gap: 0.4rem;
 }
-
 .chip {
   display: inline-flex;
   align-items: center;
@@ -196,28 +153,9 @@
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 999px;
-
-  ion-icon {
-    font-size: 0.85rem;
-  }
-
-  &--primary {
-    background: #eff6ff;
-    color: #2563eb;
-  }
-
-  &--tertiary {
-    background: #f5f3ff;
-    color: #7c3aed;
-  }
-}
-
-/* ── Recovery timer wrap ──────────────────────── */
-.recovery-timer-wrap {
-  padding: 0.5rem 0.65rem;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  ion-icon { font-size: 0.85rem; }
+  &--primary { background: #eff6ff; color: #2563eb; }
+  &--tertiary { background: #f5f3ff; color: #7c3aed; }
 }
 
 /* ── Posture callout ──────────────────────────── */
@@ -229,18 +167,350 @@
   background: #f8fafc;
   border-radius: 10px;
   border-left: 3px solid var(--ion-color-primary);
-
   ion-icon {
     font-size: 1rem;
     color: var(--ion-color-primary);
     flex-shrink: 0;
     margin-top: 1px;
   }
-
   p {
     margin: 0;
     font-size: 0.83rem;
     color: #475569;
     line-height: 1.45;
   }
+}
+
+/* =========================================================================
+   WORKOUT RUNNER CARDS (Exercise, Rest, Feedback, Completed)
+   ========================================================================= */
+
+.runner-view {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+  height: 100%;
+  padding: 0.5rem 1rem 1rem;
+  box-sizing: border-box;
+}
+
+.runner-header {
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.runner-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.exercise-step {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.total-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-wrap {
+  margin-bottom: 0.5rem;
+}
+
+.set-badge {
+  display: inline-block;
+  background: var(--ion-color-primary);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.exercise-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0.25rem 0;
+  line-height: 1.2;
+}
+
+.prepare-subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: -0.25rem 0 1rem;
+}
+
+.posture-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f8fafc;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--ion-color-primary);
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #475569;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--ion-color-primary);
+  }
+}
+
+.runner-timer-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.circular-timer {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.05);
+
+  &.rest-timer {
+    background: #f0fdf4;
+    .timer-digits {
+      color: #16a34a;
+    }
+  }
+}
+
+.timer-digits {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 24px;
+  width: 160px;
+  height: 160px;
+}
+
+.rep-digits {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.runner-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-bottom: 0.5rem;
+
+  ion-button {
+    --border-radius: 12px;
+    margin: 0;
+  }
+  .main-action-btn {
+    height: 3rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .secondary-btn {
+    height: 2.8rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .abandon-btn {
+    height: 2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ── Feedback/Completed Cards ─────────────────────────────── */
+.runner-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.runner-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.runner-card-progress {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.runner-card-time {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.runner-body {
+  padding: 2rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.runner-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 1.5rem;
+  line-height: 1.2;
+}
+
+.action-buttons-wrap {
+  padding: 1rem;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  ion-button {
+    height: 3rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    --box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+}
+
+/* ── Feedback Specific ────────────────────────── */
+.early-exit-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 1.25rem;
+  }
+}
+
+.feedback-card {
+  .runner-body {
+    align-items: stretch;
+    text-align: left;
+  }
+  .runner-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.feedback-subtitle {
+  text-align: center;
+  color: #64748b;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.feedback-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 0.5rem;
+}
+
+.feedback-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.range-hint {
+  font-size: 0.8rem;
+  display: block;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.mt-3 {
+  margin-top: 1.5rem;
+}
+
+.error-msg {
+  color: #ef4444;
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+/* ── Completed Specific ───────────────────────── */
+.completed-body {
+  justify-content: center;
+}
+
+.success-icon-wrap {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: #dcfce7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+
+  ion-icon {
+    font-size: 4rem;
+    color: #16a34a;
+  }
+}
+
+.completed-msg {
+  color: #64748b;
+  font-size: 1.05rem;
+  max-width: 80%;
+  margin: 0 auto;
 }

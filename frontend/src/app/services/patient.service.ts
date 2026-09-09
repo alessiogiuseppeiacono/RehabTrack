@@ -20,6 +20,8 @@ export interface Card {
   therapist_id: number;
   title: string;
   created_at: string;
+  is_completed_today?: boolean;
+  last_completed_at?: string;
 }
 
 export interface TodayCardResponse {

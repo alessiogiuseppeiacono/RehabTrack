@@ -56,11 +56,27 @@ db.serialize(() => {
       patient_id    INTEGER NOT NULL,
       therapist_id  INTEGER NOT NULL,
       title         TEXT    NOT NULL,
+      start_date    DATE    NOT NULL DEFAULT (CURRENT_DATE),
+      end_date      DATE    DEFAULT NULL,
       created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (patient_id)   REFERENCES users(id),
       FOREIGN KEY (therapist_id) REFERENCES users(id)
     )
   `);
+
+  // Migrazione: aggiungi start_date e end_date se non presenti
+  db.all("PRAGMA table_info(cards)", (err, columns) => {
+    if (err) return;
+    const hasStartDate = columns.some(c => c.name === 'start_date');
+    if (!hasStartDate) {
+      console.log("Migrazione: Aggiunta start_date ed end_date a cards");
+      db.serialize(() => {
+        db.run("ALTER TABLE cards ADD COLUMN start_date DATE DEFAULT (CURRENT_DATE)");
+        db.run("ALTER TABLE cards ADD COLUMN end_date DATE DEFAULT NULL");
+        db.run("UPDATE cards SET start_date = date(created_at)");
+      });
+    }
+  });
 
   // ─────────────────────────────────────────────
   // TABELLA: exercises (esercizi della scheda)

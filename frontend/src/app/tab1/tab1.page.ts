@@ -1,20 +1,23 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonNote,
-  IonSpinner, IonIcon, IonChip, IonText
+  IonItem, IonLabel, IonNote,
+  IonSpinner, IonIcon, IonText,
+  IonButton, IonRange, IonTextarea, IonBadge, AlertController
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   barbellOutline, timerOutline, repeatOutline,
-  documentTextOutline, fitnessOutline, alertCircleOutline
+  documentTextOutline, fitnessOutline, alertCircleOutline,
+  playOutline, pauseOutline, stopOutline, sendOutline, checkmarkCircleOutline,
+  playForwardOutline
 } from 'ionicons/icons';
 import { PatientService, Card, Exercise } from '../services/patient.service';
-import { TimerComponent } from '../components/timer/timer.component';
-import { SessionTimerComponent, SessionReport } from '../components/session-timer/session-timer.component';
+
+type WorkoutState = 'overview' | 'prepare' | 'exercise' | 'rest' | 'feedback' | 'completed';
 
 @Component({
   selector: 'app-tab1',
@@ -22,48 +25,72 @@ import { SessionTimerComponent, SessionReport } from '../components/session-time
   styleUrls: ['tab1.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonNote,
-    IonSpinner, IonIcon, IonChip, IonText,
-    TimerComponent, SessionTimerComponent
+    IonItem, IonLabel, IonNote,
+    IonSpinner, IonIcon, IonText,
+    IonButton, IonRange, IonTextarea, IonBadge
   ],
 })
-export class Tab1Page implements OnInit {
+export class Tab1Page implements OnInit, OnDestroy {
   private readonly patientService = inject(PatientService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly ngZone = inject(NgZone);
+  private readonly alertCtrl = inject(AlertController);
 
   card: Card | null = null;
   exercises: Exercise[] = [];
   loading = true;
   error: string | null = null;
 
-  // TASK-403: stato dell'invio del log di fine sessione
+  // Stato Workout
+  workoutState: WorkoutState = 'overview';
+  currentExerciseIndex = 0;
+  currentSet = 1;
+  
+  // Timers
+  totalElapsedSeconds = 0;
+  countdownSeconds = 0;
+  isTimerRunning = false;
+  private sessionIntervalId: ReturnType<typeof setInterval> | null = null;
+
+  // Feedback form
+  painLevel = 5;
+  patientNotes = '';
   sessionLogState: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
+  isEarlyExit = false;
+
+  constructor() {
+    addIcons({
+      barbellOutline, timerOutline, repeatOutline,
+      documentTextOutline, fitnessOutline, alertCircleOutline,
+      playOutline, pauseOutline, stopOutline, sendOutline, checkmarkCircleOutline,
+      playForwardOutline
+    });
+  }
 
   ngOnInit(): void {
     this.loadTodayCard();
   }
 
+  ngOnDestroy(): void {
+    this.clearSessionTimer();
+  }
+
   loadTodayCard(): void {
     this.loading = true;
     this.error = null;
-    // finalize(): lo spinner si ferma SEMPRE (successo, errore o handler che fallisce)
     this.patientService.getTodayCard()
       .pipe(finalize(() => {
         this.loading = false;
-        // App zoneless (nessun zone.js): forziamo la Change Detection dopo l'async HTTP
         this.cdr.detectChanges();
       }))
       .subscribe({
         next: (res) => {
-          // TASK-402: assegnazioni difensive se la risposta è vuota/undefined
           this.card = res?.card ?? null;
           this.exercises = res?.exercises ?? [];
         },
         error: (err) => {
-          // TASK-402: 404 (nessuna scheda oggi) → stato vuoto, non errore
           if (err?.status === 404) {
             this.card = null;
             this.exercises = [];
@@ -74,31 +101,228 @@ export class Tab1Page implements OnInit {
       });
   }
 
-  // TASK-403 + TASK-404: al termine del form report invia il log completo al backend.
-  // SessionReport include duration_seconds (timer), pain_level (slider) e patient_notes (textarea).
-  onSessionFinished(report: SessionReport): void {
+  get currentExercise(): Exercise | null {
+    if (this.exercises.length === 0 || this.currentExerciseIndex >= this.exercises.length) {
+      return null;
+    }
+    return this.exercises[this.currentExerciseIndex];
+  }
+
+  get isTimeBased(): boolean {
+    const ex = this.currentExercise;
+    if (!ex) return false;
+    return this.parseExerciseDuration(ex.reps_or_duration) !== null;
+  }
+
+  get timeTarget(): number {
+    const ex = this.currentExercise;
+    if (!ex) return 0;
+    return this.parseExerciseDuration(ex.reps_or_duration) || 0;
+  }
+
+  parseExerciseDuration(repsOrDuration: string): number | null {
+    const lower = repsOrDuration.toLowerCase();
+    if (lower.includes('s') || lower.includes('sec') || lower.includes('secondi')) {
+      const match = lower.match(/\d+/);
+      return match ? parseInt(match[0], 10) : null;
+    }
+    return null;
+  }
+
+  formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  async startWorkout(): Promise<void> {
+    if (this.card?.is_completed_today) {
+      const alert = await this.alertCtrl.create({
+        header: 'Attenzione',
+        message: 'Hai già registrato l\'allenamento di oggi. Vuoi ripeterlo?',
+        buttons: [
+          {
+            text: 'Annulla',
+            role: 'cancel'
+          },
+          {
+            text: 'Ripeti',
+            handler: () => {
+              this.doStartWorkout();
+            }
+          }
+        ]
+      });
+      await alert.present();
+    } else {
+      this.doStartWorkout();
+    }
+  }
+
+  private doStartWorkout(): void {
+    this.currentExerciseIndex = 0;
+    this.currentSet = 1;
+    this.totalElapsedSeconds = 0;
+    this.painLevel = 5;
+    this.patientNotes = '';
+    this.sessionLogState = 'idle';
+    this.isEarlyExit = false;
+    this.startGlobalTimer();
+    this.startPreparePhase();
+  }
+
+  startPreparePhase(): void {
+    this.workoutState = 'prepare';
+    this.countdownSeconds = 5;
+    this.isTimerRunning = true;
+    this.cdr.markForCheck();
+  }
+
+  skipPrepare(): void {
+    this.finishPrepare();
+  }
+
+  finishPrepare(): void {
+    this.startExercisePhase();
+  }
+
+  startExercisePhase(): void {
+    this.workoutState = 'exercise';
+    if (this.isTimeBased) {
+      this.countdownSeconds = this.timeTarget;
+      this.isTimerRunning = true;
+    } else {
+      this.countdownSeconds = 0;
+      this.isTimerRunning = false;
+    }
+    this.cdr.markForCheck();
+  }
+
+  startGlobalTimer(): void {
+    this.clearSessionTimer();
+    this.ngZone.runOutsideAngular(() => {
+      this.sessionIntervalId = setInterval(() => {
+        this.ngZone.run(() => {
+          if (this.workoutState !== 'feedback' && this.workoutState !== 'completed' && this.workoutState !== 'overview') {
+            this.totalElapsedSeconds++;
+          }
+
+          if (this.isTimerRunning && this.countdownSeconds > 0) {
+            this.countdownSeconds--;
+            if (this.countdownSeconds === 0) {
+              if (this.workoutState === 'prepare') {
+                this.finishPrepare();
+              } else if (this.workoutState === 'exercise') {
+                this.completeSet();
+              } else if (this.workoutState === 'rest') {
+                this.finishRest();
+              }
+            }
+          }
+          this.cdr.markForCheck();
+        });
+      }, 1000);
+    });
+  }
+
+  clearSessionTimer(): void {
+    if (this.sessionIntervalId) {
+      clearInterval(this.sessionIntervalId);
+      this.sessionIntervalId = null;
+    }
+  }
+
+  toggleExerciseTimer(): void {
+    this.isTimerRunning = !this.isTimerRunning;
+    this.cdr.markForCheck();
+  }
+
+  skipExercise(): void {
+    this.completeSet();
+  }
+
+  completeSet(): void {
+    const ex = this.exercises[this.currentExerciseIndex];
+    if (!ex) return;
+
+    if (this.currentSet < ex.sets) {
+      this.currentSet++;
+      this.startRestPhase(ex.rest_seconds);
+    } else {
+      if (this.currentExerciseIndex < this.exercises.length - 1) {
+        this.currentExerciseIndex++;
+        this.currentSet = 1;
+        this.startRestPhase(ex.rest_seconds, true); // true indica che il prossimo passo sarà un nuovo esercizio
+      } else {
+        this.finishWorkout();
+      }
+    }
+  }
+
+  startRestPhase(restSeconds: number, nextIsNewExercise = false): void {
+    if (restSeconds > 0) {
+      this.workoutState = 'rest';
+      this.countdownSeconds = restSeconds;
+      this.isTimerRunning = true;
+      // Tracciamo se il prossimo esercizio è nuovo per avviare la prepare phase
+      // Possiamo usare una variabile di stato, oppure dedurre se (currentSet === 1) nella finishRest
+      this.cdr.markForCheck();
+    } else {
+      this.finishRest();
+    }
+  }
+
+  finishRest(): void {
+    // Il prepare va fatto solo all'inizio dell'allenamento.
+    // Durante il workout, dopo il recupero, si passa direttamente all'esercizio successivo.
+    this.startExercisePhase();
+  }
+
+  skipRest(): void {
+    this.finishRest();
+  }
+
+  abandonWorkout(): void {
+    this.isEarlyExit = true;
+    this.workoutState = 'feedback';
+    this.isTimerRunning = false;
+    this.clearSessionTimer();
+    this.cdr.markForCheck();
+  }
+
+  finishWorkout(): void {
+    this.workoutState = 'feedback';
+    this.isTimerRunning = false;
+    this.clearSessionTimer();
+    this.cdr.markForCheck();
+  }
+
+  submitFeedback(): void {
     if (!this.card) return;
     this.sessionLogState = 'saving';
     this.patientService.saveSessionLog({
       card_id: this.card.id,
-      duration_seconds: report.duration_seconds,
-      pain_level: report.pain_level,
-      patient_notes: report.patient_notes,
+      duration_seconds: this.totalElapsedSeconds,
+      pain_level: this.painLevel,
+      patient_notes: this.patientNotes,
     }).subscribe({
-      // Zoneless: stessa forzatura della Change Detection del caricamento scheda
       next: () => {
         this.sessionLogState = 'saved';
-        this.cdr.detectChanges();
+        if (this.card) {
+          this.card.is_completed_today = true;
+        }
+        this.workoutState = 'completed';
+        this.cdr.markForCheck();
       },
       error: () => {
         this.sessionLogState = 'error';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
 
-  constructor() {
-    // Tutte le icone usate nel template vanno registrate qui (vedi alert-circle-outline)
-    addIcons({ barbellOutline, timerOutline, repeatOutline, documentTextOutline, fitnessOutline, alertCircleOutline });
+  resetToOverview(): void {
+    this.workoutState = 'overview';
+    this.cdr.markForCheck();
   }
 }
