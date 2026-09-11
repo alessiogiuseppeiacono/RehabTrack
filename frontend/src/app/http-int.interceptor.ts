@@ -1,5 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -9,6 +10,7 @@ const API_ORIGIN = BASE_API_URL.replace(/\/api$/, '');
 
 export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const toastCtrl = inject(ToastController);
   const token = localStorage.getItem('auth_token');
 
   // Risolve sempre l'URL verso il backend sulla porta 3000
@@ -42,6 +44,11 @@ export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err) => {
       if (err.status === 401) {
         localStorage.removeItem('auth_token');
+        toastCtrl.create({
+          message: 'Sessione scaduta, effettua nuovamente l\'accesso',
+          duration: 3000,
+          color: 'danger'
+        }).then(t => t.present());
         router.navigateByUrl('/login');
       }
       return throwError(() => err);

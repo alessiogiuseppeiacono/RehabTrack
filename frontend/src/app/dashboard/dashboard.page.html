@@ -65,7 +65,7 @@
         <div class="state-center">
           <ion-icon name="person-outline" size="large" color="medium"></ion-icon>
           <ion-text color="medium">
-            <p>{{ searchQuery ? 'Nessun paziente trovato' : 'Nessun paziente associato' }}</p>
+            <p>{{ searchQuery ? 'Nessun paziente trovato' : 'Nessun paziente associato. Clicca su \'+\' per aggiungere il tuo primo paziente' }}</p>
           </ion-text>
         </div>
       }
@@ -188,7 +188,7 @@
           @if (!loadingCards && !cardsError && patientCards.length === 0) {
             <div class="state-center logs-empty">
               <ion-icon name="fitness-outline" size="large" color="medium"></ion-icon>
-              <ion-text color="medium"><p>Nessuna scheda assegnata</p></ion-text>
+              <ion-text color="medium"><p>Nessuna scheda attiva per questo paziente. Clicca su 'Nuova Scheda' per assegnarne una</p></ion-text>
             </div>
           }
           @if (!loadingCards && !cardsError && patientCards.length > 0) {
@@ -250,7 +250,7 @@
           @if (!loadingLogs && !logsError && patientLogs.length === 0) {
             <div class="state-center logs-empty">
               <ion-icon name="calendar-outline" size="large" color="medium"></ion-icon>
-              <ion-text color="medium"><p>Nessuna sessione registrata</p></ion-text>
+              <ion-text color="medium"><p>Nessuna sessione completata di recente</p></ion-text>
             </div>
           }
 

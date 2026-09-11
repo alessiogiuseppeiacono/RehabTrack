@@ -243,7 +243,18 @@ async function deleteCard(req, res) {
     return res.status(403).json({ error: 'Scheda non trovata o non autorizzata' });
   }
 
+  // 1. Rimuovi i log delle sessioni (session_logs ha NOT NULL su card_id)
+  await new Promise((resolve, reject) => {
+    db.run('DELETE FROM session_logs WHERE card_id = ?', [cardId], function (err) {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  // 2. Elimina gli esercizi associati
   await Exercise.deleteByCard(cardId);
+
+  // 3. Elimina la scheda
   await new Promise((resolve, reject) => {
     db.run('DELETE FROM cards WHERE id = ?', [cardId], function (err) {
       if (err) return reject(err);

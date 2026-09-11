@@ -11,7 +11,7 @@ import {
   IonSearchbar, IonChip, IonLabel, IonNote,
   IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonList, IonModal, IonButtons, IonBackButton,
-  AlertController
+  AlertController, ToastController
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -49,6 +49,7 @@ export class DashboardPage implements OnInit {
   private readonly therapistService = inject(TherapistService);
   private readonly authService = inject(AuthService);
   private readonly alertCtrl = inject(AlertController);
+  private readonly toastCtrl = inject(ToastController);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -187,10 +188,23 @@ export class DashboardPage implements OnInit {
           handler: () => {
             this.therapistService.deleteCard(card.id).subscribe({
               next: () => {
-                this.patientCards = this.patientCards.filter(c => c.id !== card.id);
-                this.cdr.detectChanges();
+                if (this.selectedPatient) {
+                  this.selectPatient(this.selectedPatient);
+                }
+                this.toastCtrl.create({
+                  message: 'Elemento eliminato',
+                  duration: 2000,
+                  color: 'dark'
+                }).then(t => t.present());
               },
-              error: (err) => console.error('Errore eliminazione scheda', err)
+              error: (err) => {
+                console.error('Errore eliminazione scheda', err);
+                this.toastCtrl.create({
+                  message: err?.error?.error || 'Errore durante l\'eliminazione',
+                  duration: 3000,
+                  color: 'danger'
+                }).then(t => t.present());
+              }
             });
           }
         }
@@ -203,6 +217,11 @@ export class DashboardPage implements OnInit {
   onCardCreated(): void {
     this.showComposer = false;
     this.editCardData = null;
+    this.toastCtrl.create({
+      message: 'Scheda salvata con successo',
+      duration: 2000,
+      color: 'success'
+    }).then(t => t.present());
     if (this.selectedPatient) {
       this.selectPatient(this.selectedPatient);
     }
@@ -234,8 +253,22 @@ export class DashboardPage implements OnInit {
   }
 
   // TASK-303: logout — pulisce token e torna al login
-  logout(): void {
-    this.authService.logout();
+  async logout(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma',
+      message: 'Vuoi davvero disconnetterti?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { 
+          text: 'Esci', 
+          role: 'destructive',
+          handler: () => {
+            this.authService.logout();
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async promptAddPatient(): Promise<void> {
@@ -251,7 +284,15 @@ export class DashboardPage implements OnInit {
             if (data.email) {
               this.therapistService.assignPatientByEmail(data.email).subscribe({
                 next: () => this.loadPatients(),
-                error: (err) => console.error('Errore associazione paziente', err)
+                error: (err) => {
+                  console.error('Errore associazione paziente', err);
+                  const errorMsg = err?.status === 404 ? 'Utente non presente' : (err?.error?.error || 'Errore di rete');
+                  this.toastCtrl.create({
+                    message: errorMsg,
+                    duration: 3000,
+                    color: 'danger'
+                  }).then(t => t.present());
+                }
               });
             }
           }
@@ -278,8 +319,20 @@ export class DashboardPage implements OnInit {
                   this.selectedPatient = null;
                 }
                 this.loadPatients();
+                this.toastCtrl.create({
+                  message: 'Paziente dissociato',
+                  duration: 2000,
+                  color: 'dark'
+                }).then(t => t.present());
               },
-              error: (err) => console.error('Errore dissociazione paziente', err)
+              error: (err) => {
+                console.error('Errore dissociazione paziente', err);
+                this.toastCtrl.create({
+                  message: err?.error?.error || 'Errore di rete',
+                  duration: 3000,
+                  color: 'danger'
+                }).then(t => t.present());
+              }
             });
           }
         }
@@ -313,8 +366,20 @@ export class DashboardPage implements OnInit {
                   if (fIdx > -1) this.filteredPatients[fIdx] = updatedPatient;
                 }
                 this.cdr.detectChanges();
+                this.toastCtrl.create({
+                  message: 'Note cliniche aggiornate',
+                  duration: 2000,
+                  color: 'success'
+                }).then(t => t.present());
               },
-              error: (err) => console.error('Errore aggiornamento note', err)
+              error: (err) => {
+                console.error('Errore aggiornamento note', err);
+                this.toastCtrl.create({
+                  message: err?.error?.error || 'Errore durante il salvataggio',
+                  duration: 3000,
+                  color: 'danger'
+                }).then(t => t.present());
+              }
             });
           }
         }

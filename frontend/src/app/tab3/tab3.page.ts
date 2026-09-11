@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { mapOutline, logOutOutline } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
@@ -45,6 +45,7 @@ export class Tab3Page implements OnInit, OnDestroy {
   private map: L.Map | undefined | null = null;
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly alertCtrl = inject(AlertController);
 
   constructor() {
     addIcons({ mapOutline, logOutOutline });
@@ -85,9 +86,22 @@ export class Tab3Page implements OnInit, OnDestroy {
     }, 200);
   }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+  async logout(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma',
+      message: 'Vuoi davvero disconnetterti?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { 
+          text: 'Esci', 
+          role: 'destructive',
+          handler: () => {
+            this.authService.logout();
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   // TASK-504: acquisisce la posizione GPS e centra la mappa sull'utente.

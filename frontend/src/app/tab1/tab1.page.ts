@@ -395,8 +395,21 @@ export class Tab1Page implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+  async logout(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma',
+      message: 'Vuoi davvero disconnetterti?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        { 
+          text: 'Esci', 
+          role: 'destructive',
+          handler: () => {
+            this.authService.logout();
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }
