@@ -23,6 +23,8 @@ export interface TherapistCard {
   patient_id: number;
   therapist_id: number;
   title: string;
+  start_date: string | null;
+  end_date: string | null;
   created_at: string;
 }
 
@@ -57,6 +59,8 @@ export interface CardExercisePayload {
 export interface CardPayload {
   patient_id: number;
   title: string;
+  start_date?: string;
+  end_date?: string;
   exercises: CardExercisePayload[];
 }
 
@@ -109,12 +113,22 @@ export class TherapistService {
     return this.http.post<Patient>(`${this.baseUrl}/patients`, data);
   }
 
-  /** POST /api/therapist/cards — TASK-304: crea scheda con N esercizi per un paziente */
+  /** POST /api/therapist/cards — crea scheda con N esercizi per un paziente */
   createCard(payload: CardPayload): Observable<CreateCardResponse> {
     return this.http.post<CreateCardResponse>(`${this.baseUrl}/cards`, payload);
   }
 
-  /** GET /api/therapist/patients/:id/cards — TASK-305: schede assegnate con conteggio esercizi */
+  /** PUT /api/therapist/cards/:id — aggiorna scheda ed esercizi */
+  updateCard(cardId: number, data: any): Observable<CardDetailsResponse> {
+    return this.http.put<CardDetailsResponse>(`${this.baseUrl}/cards/${cardId}`, data);
+  }
+
+  /** DELETE /api/therapist/cards/:id — elimina scheda */
+  deleteCard(cardId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/cards/${cardId}`);
+  }
+
+  /** GET /api/therapist/patients/:id/cards — schede assegnate con conteggio esercizi */
   getPatientCards(patientId: number): Observable<PatientCard[]> {
     return this.http.get<PatientCard[]>(`${this.baseUrl}/patients/${patientId}/cards`);
   }
@@ -122,5 +136,10 @@ export class TherapistService {
   /** GET /api/therapist/cards/:id — Recupera i dettagli di una scheda e dei suoi esercizi */
   getCardDetails(cardId: number): Observable<CardDetailsResponse> {
     return this.http.get<CardDetailsResponse>(`${this.baseUrl}/cards/${cardId}`);
+  }
+
+  /** GET /api/therapist/exercises — lista esercizi disponibili nel DB */
+  getAvailableExercises(): Observable<{ name: string }[]> {
+    return this.http.get<{ name: string }[]>(`${this.baseUrl}/exercises`);
   }
 }

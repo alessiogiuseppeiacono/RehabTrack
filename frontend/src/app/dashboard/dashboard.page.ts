@@ -4,13 +4,14 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonIcon, IonSpinner, IonText,
   IonSearchbar, IonChip, IonLabel, IonNote,
   IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonList, IonModal, IonButtons, IonBackButton
+  IonItem, IonList, IonModal, IonButtons, IonBackButton,
+  AlertController
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -19,10 +20,10 @@ import {
   addCircleOutline, analyticsOutline, alertCircleOutline,
   bodyOutline, calendarOutline, heartOutline, timeOutline,
   chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
-  barbellOutline
+  barbellOutline, trashOutline, createOutline, saveOutline
 } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
-import { TherapistService, Patient, PatientLog, PatientCard } from '../services/therapist.service';
+import { TherapistService, Patient, PatientLog, PatientCard, CardDetailsResponse } from '../services/therapist.service';
 import { CardComposerComponent } from './card-composer.component';
 import { FeedbackViewerComponent } from './feedback-viewer.component';
 
@@ -34,7 +35,6 @@ import { FeedbackViewerComponent } from './feedback-viewer.component';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonButton, IonIcon, IonSpinner, IonText,
     IonSearchbar, IonChip, IonLabel, IonNote,
@@ -47,6 +47,8 @@ import { FeedbackViewerComponent } from './feedback-viewer.component';
 export class DashboardPage implements OnInit {
   private readonly therapistService = inject(TherapistService);
   private readonly authService = inject(AuthService);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
   // TASK-303: stato lista pazienti
@@ -75,13 +77,16 @@ export class DashboardPage implements OnInit {
   // TASK-305: controllo visibilità modale feedback & diario
   showFeedback = false;
 
+  // Modifica scheda: dati per il composer in edit mode
+  editCardData: CardDetailsResponse | null = null;
+
   constructor() {
     addIcons({
       peopleOutline, personOutline, logOutOutline,
       addCircleOutline, analyticsOutline, alertCircleOutline,
       bodyOutline, calendarOutline, heartOutline, timeOutline,
       chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
-      barbellOutline
+      barbellOutline, trashOutline, createOutline, saveOutline
     });
   }
 
@@ -148,15 +153,54 @@ export class DashboardPage implements OnInit {
       });
   }
 
-  // TASK-304: apre il modale compositore schede
+  // TASK-304: apre il modale compositore schede (creazione)
   openComposer(): void {
+    this.editCardData = null;
     this.showComposer = true;
     this.cdr.detectChanges();
   }
 
-  // TASK-304: scheda creata → chiude modale, ricarica schede e log
+  // Apre il modale compositore in modalità modifica
+  openEditCard(card: PatientCard): void {
+    this.therapistService.getCardDetails(card.id).subscribe({
+      next: (details) => {
+        this.editCardData = details;
+        this.showComposer = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Errore caricamento dettagli scheda', err)
+    });
+  }
+
+  // Conferma ed elimina scheda
+  async confirmDeleteCard(card: PatientCard): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma eliminazione',
+      message: `Sei sicuro di voler eliminare la scheda "${card.title}"? Gli esercizi associati verranno rimossi.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Elimina',
+          role: 'destructive',
+          handler: () => {
+            this.therapistService.deleteCard(card.id).subscribe({
+              next: () => {
+                this.patientCards = this.patientCards.filter(c => c.id !== card.id);
+                this.cdr.detectChanges();
+              },
+              error: (err) => console.error('Errore eliminazione scheda', err)
+            });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  // TASK-304: scheda creata/aggiornata → chiude modale, ricarica schede e log
   onCardCreated(): void {
     this.showComposer = false;
+    this.editCardData = null;
     if (this.selectedPatient) {
       this.selectPatient(this.selectedPatient);
     }
@@ -181,6 +225,10 @@ export class DashboardPage implements OnInit {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}m ${s}s`;
+  }
+
+  navigateToCard(cardId: number): void {
+    this.router.navigate(['/dashboard/card', cardId]);
   }
 
   // TASK-303: logout — pulisce token e torna al login

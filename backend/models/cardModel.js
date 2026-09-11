@@ -79,6 +79,25 @@ const Card = {
         resolve(row || null);
       });
     });
+  },
+
+  /**
+   * Aggiorna una scheda riabilitativa esistente.
+   * @param {number} id
+   * @param {{ title?: string, start_date?: string, end_date?: string }} data
+   * @returns {Promise<void>}
+   */
+  update(id, { title, start_date, end_date }) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE cards SET title = ?, start_date = ?, end_date = ? WHERE id = ?',
+        [title, start_date || null, end_date || null, id],
+        function (err) {
+          if (err) return reject(err);
+          resolve();
+        }
+      );
+    });
   }
 };
 
@@ -139,6 +158,20 @@ const Exercise = {
           resolve(rows || []);
         }
       );
+    });
+  },
+
+  /**
+   * Elimina tutti gli esercizi di una scheda.
+   * @param {number} cardId
+   * @returns {Promise<void>}
+   */
+  deleteByCard(cardId) {
+    return new Promise((resolve, reject) => {
+      db.run('DELETE FROM exercises WHERE card_id = ?', [cardId], function (err) {
+        if (err) return reject(err);
+        resolve();
+      });
     });
   }
 };

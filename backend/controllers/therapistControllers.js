@@ -142,4 +142,75 @@ async function getCardDetails(req, res) {
   res.json({ card, exercises });
 }
 
-module.exports = { getPatients, createPatient, createCard, getPatientLogs, getPatientCards, getCardDetails };
+module.exports = { getPatients, createPatient, createCard, updateCard, deleteCard, getPatientLogs, getPatientCards, getCardDetails, getExercises };
+
+/**
+ * PUT /api/therapist/cards/:id
+ * Aggiorna titolo, date e (opzionalmente) esercizi di una scheda.
+ * Se exercises è fornito, cancella e reinserisce in transazione.
+ */
+async function updateCard(req, res) {
+  const cardId = Number(req.params.id);
+  const card = await Card.findById(cardId);
+  if (!card || card.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Scheda non trovata o non autorizzata' });
+  }
+
+  const { title, start_date, end_date, exercises } = req.body;
+  await Card.update(cardId, {
+    title: title || card.title,
+    start_date: start_date || card.start_date,
+    end_date: end_date !== undefined ? end_date : card.end_date
+  });
+
+  if (Array.isArray(exercises)) {
+    await Exercise.deleteByCard(cardId);
+    if (exercises.length > 0) {
+      await Exercise.createBulk(cardId, exercises);
+    }
+  }
+
+  const updated = await Card.findById(cardId);
+  const updatedExercises = await Exercise.findByCard(cardId);
+  res.json({ card: updated, exercises: updatedExercises });
+}
+
+/**
+ * DELETE /api/therapist/cards/:id
+ * Elimina esercizi e scheda. I session_logs restano orfani (storico).
+ */
+async function deleteCard(req, res) {
+  const cardId = Number(req.params.id);
+  const card = await Card.findById(cardId);
+  if (!card || card.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Scheda non trovata o non autorizzata' });
+  }
+
+  await Exercise.deleteByCard(cardId);
+  await new Promise((resolve, reject) => {
+    db.run('DELETE FROM cards WHERE id = ?', [cardId], function (err) {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  res.json({ success: true, message: 'Scheda eliminata' });
+}
+
+/**
+ * GET /api/therapist/exercises
+ * Lista di tutti gli esercizi distinti nel database (per il selettore a tendina).
+ */
+async function getExercises(req, res) {
+  const exercises = await new Promise((resolve, reject) => {
+    db.all(
+      'SELECT DISTINCT name FROM exercises ORDER BY name ASC',
+      [],
+      (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows || []);
+      }
+    );
+  });
+  res.json(exercises);
+}

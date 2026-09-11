@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Nuova Scheda — {{ patient.first_name }} {{ patient.last_name }}</ion-title>
+    <ion-title>{{ isEditMode ? 'Modifica Scheda' : 'Nuova Scheda' }} — {{ patient.first_name }} {{ patient.last_name }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="dismiss()">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -16,10 +16,16 @@
       <ion-input formControlName="title" placeholder="Es. Protocollo Spalla — settimana 3"></ion-input>
     </ion-item>
 
-    <ion-item lines="outline" class="ion-margin-bottom">
-      <ion-label position="stacked">Note / Obiettivo</ion-label>
-      <ion-textarea formControlName="notes" rows="2" placeholder="Obiettivi clinici o indicazioni..."></ion-textarea>
-    </ion-item>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" class="ion-margin-bottom">
+      <ion-item lines="outline">
+        <ion-label position="stacked">Data inizio</ion-label>
+        <ion-input type="date" formControlName="start_date"></ion-input>
+      </ion-item>
+      <ion-item lines="outline">
+        <ion-label position="stacked">Data fine</ion-label>
+        <ion-input type="date" formControlName="end_date"></ion-input>
+      </ion-item>
+    </div>
 
     <div class="exercises-header ion-margin-top ion-margin-bottom" style="display: flex; justify-content: space-between; align-items: center;">
       <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600;">Esercizi</h3>
@@ -77,8 +83,8 @@
       <ion-spinner name="crescent" slot="start"></ion-spinner>
       Salvataggio...
     } @else {
-      <ion-icon name="barbell-outline" slot="start"></ion-icon>
-      CREA E ASSEGNA SCHEDA
+      <ion-icon [name]="isEditMode ? 'save-outline' : 'barbell-outline'" slot="start"></ion-icon>
+      {{ isEditMode ? 'SALVA MODIFICHE' : 'CREA E ASSEGNA SCHEDA' }}
     }
   </ion-button>
 </ion-footer>
