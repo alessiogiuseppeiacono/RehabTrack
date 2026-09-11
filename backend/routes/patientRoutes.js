@@ -4,7 +4,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { getTodayCard, saveSessionLog, getSessionLogs } = require('../controllers/patientControllers');
+const { getTodayCard, saveSessionLog, getSessionLogs, deleteSessionLog } = require('../controllers/patientControllers');
 
 // Configurazione storage Multer
 const storage = multer.diskStorage({
@@ -20,7 +20,10 @@ const upload = multer({ storage: storage });
 
 const router = express.Router();
 
-// Tutte le rotte richiedono autenticazione + ruolo paziente
+// DELETE accessibile sia a paziente che fisioterapista (prima del requireRole globale)
+router.delete('/session-logs/:id', verifyToken, requireRole('paziente', 'fisioterapista'), deleteSessionLog);
+
+// Tutte le altre rotte richiedono autenticazione + ruolo paziente
 router.use(verifyToken, requireRole('paziente'));
 
 router.get('/today-card', getTodayCard);

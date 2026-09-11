@@ -90,4 +90,8 @@ export class PatientService {
   getSessionLogs(): Observable<SessionLogResponse[]> {
     return this.http.get<SessionLogResponse[]>(`${this.baseUrl}/session-logs`);
   }
+
+  deleteSessionLog(logId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/session-logs/${logId}`);
+  }
 }

@@ -7,7 +7,8 @@ import {
   IonButton, IonModal, IonSegment, IonSegmentButton, IonLabel,
   IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonBadge, IonRefresher, IonRefresherContent, IonSpinner, IonText,
-  IonSearchbar, IonChip
+  IonSearchbar, IonChip,
+  AlertController, ToastController
 } from '@ionic/angular';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -42,6 +43,8 @@ const STORAGE_KEY = 'rehabtrack_photos';
 export class Tab2Page implements OnInit, ViewWillEnter {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly toastCtrl = inject(ToastController);
 
   currentSegment: 'sessions' | 'photos' = 'sessions';
   allSessionLogs: SessionLogResponse[] = [];
@@ -230,6 +233,32 @@ export class Tab2Page implements OnInit, ViewWillEnter {
   // TASK-502: salva l'array aggiornato in localStorage
   private persist(): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.photos));
+  }
+
+  async confirmDeleteLog(logId: number): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma eliminazione',
+      message: 'Sei sicuro di voler eliminare questa sessione?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Elimina',
+          role: 'destructive',
+          handler: () => {
+            this.patientService.deleteSessionLog(logId).subscribe({
+              next: async () => {
+                this.allSessionLogs = this.allSessionLogs.filter(l => l.id !== logId);
+                this.applyFilters();
+                const toast = await this.toastCtrl.create({ message: 'Sessione eliminata', duration: 2000, color: 'success' });
+                await toast.present();
+              },
+              error: (err) => console.error('Errore eliminazione sessione', err),
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   logout(): void {

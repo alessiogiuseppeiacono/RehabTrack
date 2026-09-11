@@ -4,15 +4,17 @@ import { Component, inject, Input, Output, EventEmitter, OnInit, ChangeDetectorR
 import { CommonModule } from '@angular/common';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon,
-  IonList, IonItem, IonLabel, IonBadge, IonText, IonSpinner, IonImg
+  IonList, IonItem, IonLabel, IonBadge, IonText, IonSpinner, IonImg,
+  AlertController
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, heartOutline, timeOutline, calendarOutline,
-  alertCircleOutline, cameraOutline, imagesOutline
+  alertCircleOutline, cameraOutline, imagesOutline, trashOutline
 } from 'ionicons/icons';
 import { TherapistService, PatientLog, Patient } from '../services/therapist.service';
+import { PatientService } from '../services/patient.service';
 
 @Component({
   selector: 'app-feedback-viewer',
@@ -31,6 +33,8 @@ export class FeedbackViewerComponent implements OnInit {
   @Output() dismissed = new EventEmitter<void>();
 
   private readonly therapistService = inject(TherapistService);
+  private readonly patientService = inject(PatientService);
+  private readonly alertCtrl = inject(AlertController);
   private readonly cdr = inject(ChangeDetectorRef);
 
   // TASK-305: log sessioni caricati dal backend
@@ -39,7 +43,7 @@ export class FeedbackViewerComponent implements OnInit {
   error: string | null = null;
 
   constructor() {
-    addIcons({ closeOutline, heartOutline, timeOutline, calendarOutline, alertCircleOutline, cameraOutline, imagesOutline });
+    addIcons({ closeOutline, heartOutline, timeOutline, calendarOutline, alertCircleOutline, cameraOutline, imagesOutline, trashOutline });
   }
 
   ngOnInit(): void {
@@ -76,6 +80,31 @@ export class FeedbackViewerComponent implements OnInit {
   // TASK-305: formatta secondi in mm:ss
   formatDuration(s: number): string {
     return `${Math.floor(s / 60)}m ${s % 60}s`;
+  }
+
+  async confirmDeleteLog(logId: number, event: Event): Promise<void> {
+    event.stopPropagation();
+    const alert = await this.alertCtrl.create({
+      header: 'Conferma eliminazione',
+      message: 'Sei sicuro di voler eliminare questa sessione di allenamento e la relativa foto?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Elimina',
+          role: 'destructive',
+          handler: () => {
+            this.patientService.deleteSessionLog(logId).subscribe({
+              next: () => {
+                this.logs = this.logs.filter(l => l.id !== logId);
+                this.cdr.detectChanges();
+              },
+              error: (err) => console.error('Errore eliminazione sessione', err),
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   dismiss(): void { this.dismissed.emit(); }

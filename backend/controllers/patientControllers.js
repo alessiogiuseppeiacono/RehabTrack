@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const { Card, Exercise } = require('../models/cardModel');
 const db = require('../db/db');
 
@@ -118,4 +120,52 @@ async function getSessionLogs(req, res) {
   });
 }
 
-module.exports = { getTodayCard, saveSessionLog, getSessionLogs };
+/**
+ * DELETE /api/patient/session-logs/:id
+ * Elimina un log di sessione (e la foto associata dal disco).
+ * Accessibile sia dal paziente proprietario sia dal fisioterapista.
+ */
+async function deleteSessionLog(req, res) {
+  const logId = req.params.id;
+
+  // 1. Recupera il log
+  const log = await new Promise((resolve, reject) => {
+    db.get('SELECT * FROM session_logs WHERE id = ?', [logId], (err, row) => {
+      if (err) return reject(err);
+      resolve(row);
+    });
+  });
+
+  if (!log) {
+    return res.status(404).json({ error: 'Sessione non trovata' });
+  }
+
+  // 2. Controllo permessi
+  if (req.user.role === 'paziente') {
+    const card = await Card.findById(log.card_id);
+    if (!card || card.patient_id !== req.user.id) {
+      return res.status(403).json({ error: 'Non autorizzato a eliminare questa sessione' });
+    }
+  }
+  // fisioterapista: sempre consentito
+
+  // 3. Elimina foto dal disco se presente
+  if (log.photo_base64) {
+    const filePath = path.join(__dirname, '..', log.photo_base64);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+
+  // 4. Elimina il record dal DB
+  await new Promise((resolve, reject) => {
+    db.run('DELETE FROM session_logs WHERE id = ?', [logId], function (err) {
+      if (err) return reject(err);
+      resolve();
+    });
+  });
+
+  res.status(200).json({ success: true, message: 'Sessione eliminata con successo' });
+}
+
+module.exports = { getTodayCard, saveSessionLog, getSessionLogs, deleteSessionLog };

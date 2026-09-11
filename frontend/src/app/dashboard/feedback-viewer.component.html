@@ -69,7 +69,11 @@
 
       <div class="sessions-list">
         @for (log of logs; track log.id) {
-          <div class="session-row" [class.session-critical]="log.pain_level !== null && log.pain_level > 7">
+          <div class="session-row" [class.session-critical]="log.pain_level !== null && log.pain_level > 7" style="position:relative">
+            <!-- Elimina sessione -->
+            <ion-button fill="clear" color="danger" size="small" (click)="confirmDeleteLog(log.id, $event)" style="position:absolute;top:4px;right:4px;z-index:1">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
             <!-- Data -->
             <div class="session-date">
               <ion-icon name="calendar-outline"></ion-icon>

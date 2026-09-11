@@ -79,9 +79,14 @@
             <ion-card-header>
               <div class="session-header-top">
                 <ion-card-subtitle>{{ log.completed_at | date:'dd/MM/yyyy HH:mm' }}</ion-card-subtitle>
-                <ion-badge [color]="getPainColor(log.pain_level)">
-                  Dolore: {{ log.pain_level !== null ? log.pain_level : 'N/D' }}
-                </ion-badge>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <ion-badge [color]="getPainColor(log.pain_level)">
+                    Dolore: {{ log.pain_level !== null ? log.pain_level : 'N/D' }}
+                  </ion-badge>
+                  <ion-button fill="clear" color="danger" size="small" (click)="confirmDeleteLog(log.id)">
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </div>
               </div>
               <ion-card-title>{{ log.card_title }}</ion-card-title>
             </ion-card-header>
