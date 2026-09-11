@@ -1,6 +1,9 @@
 <!-- TASK-303: Dashboard Desktop Fisioterapista — layout master-detail a 2 colonne -->
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
     <ion-title>
       <ion-icon name="pulse-outline" style="margin-right:8px;vertical-align:middle"></ion-icon>
       RehabTrack — Dashboard Fisioterapista
@@ -173,7 +176,7 @@
           @if (!loadingCards && !cardsError && patientCards.length > 0) {
             <div class="logs-grid">
               @for (card of patientCards; track card.id) {
-                <ion-card class="log-card">
+                <ion-card class="log-card" button="true" [routerLink]="['/dashboard/card', card.id]">
                   <ion-card-header>
                     <ion-card-title class="log-card-title">{{ card.title }}</ion-card-title>
                     <ion-note>{{ card.created_at | date:'dd/MM/yyyy' }}</ion-note>

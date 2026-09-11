@@ -4,12 +4,13 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
   IonButton, IonIcon, IonSpinner, IonText,
   IonSearchbar, IonChip, IonLabel, IonNote,
   IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonList, IonModal
+  IonItem, IonList, IonModal, IonButtons, IonBackButton
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -33,11 +34,12 @@ import { FeedbackViewerComponent } from './feedback-viewer.component';
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonButton, IonIcon, IonSpinner, IonText,
     IonSearchbar, IonChip, IonLabel, IonNote,
     IonBadge, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonList, IonModal,
+    IonItem, IonList, IonModal, IonButtons, IonBackButton,
     CardComposerComponent,
     FeedbackViewerComponent
   ],

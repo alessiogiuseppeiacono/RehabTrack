@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Dettaglio Scheda</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading) {
+    <div class="state-center" style="text-align: center; margin-top: 2rem;">
+      <ion-spinner name="crescent"></ion-spinner>
+      <ion-text color="medium"><p>Caricamento scheda...</p></ion-text>
+    </div>
+  }
+
+  @if (!loading && error) {
+    <div class="state-center" style="text-align: center; margin-top: 2rem;">
+      <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+      <ion-text color="danger"><p>{{ error }}</p></ion-text>
+    </div>
+  }
+
+  @if (!loading && !error && cardDetails) {
+    <div class="card-header" style="padding: 16px;">
+      <h2>{{ cardDetails.card.title }}</h2>
+      <ion-note>Creato il {{ cardDetails.card.created_at | date:'dd/MM/yyyy' }}</ion-note>
+    </div>
+
+    <ion-list>
+      <ion-item-divider>
+        <ion-label>Esercizi</ion-label>
+      </ion-item-divider>
+      @for (exercise of cardDetails.exercises; track exercise.id) {
+        <ion-item>
+          <div slot="start" style="font-size: 1.2rem; font-weight: bold; color: var(--ion-color-primary);">
+            {{ exercise.order_index }}
+          </div>
+          <ion-label>
+            <h3>{{ exercise.name }}</h3>
+            <p>
+              {{ exercise.sets }} serie x {{ exercise.reps_or_duration }}
+              @if (exercise.rest_seconds) {
+                (Recupero: {{ exercise.rest_seconds }}s)
+              }
+            </p>
+            @if (exercise.posture_notes) {
+              <p><ion-note color="medium">Note: {{ exercise.posture_notes }}</ion-note></p>
+            }
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

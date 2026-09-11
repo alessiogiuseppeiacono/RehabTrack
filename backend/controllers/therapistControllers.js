@@ -128,4 +128,18 @@ async function getPatientCards(req, res) {
   res.json(cards);
 }
 
-module.exports = { getPatients, createPatient, createCard, getPatientLogs, getPatientCards };
+/**
+ * GET /api/therapist/cards/:id
+ * Recupera i dettagli di una scheda e i suoi esercizi.
+ */
+async function getCardDetails(req, res) {
+  const cardId = Number(req.params.id);
+  const card = await Card.findById(cardId);
+  if (!card || card.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Scheda non trovata o non autorizzata' });
+  }
+  const exercises = await Exercise.findByCard(cardId);
+  res.json({ card, exercises });
+}
+
+module.exports = { getPatients, createPatient, createCard, getPatientLogs, getPatientCards, getCardDetails };

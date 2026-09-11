@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'rehabtrack_dev_secret';
-const TOKEN_EXPIRY = '1h';
+const TOKEN_EXPIRY = '7d';
 const SALT_ROUNDS = 10;
 
 /**

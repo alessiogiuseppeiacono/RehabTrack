@@ -65,6 +65,22 @@ export interface CreateCardResponse {
   exerciseIds: number[];
 }
 
+export interface Exercise {
+  id: number;
+  card_id: number;
+  name: string;
+  sets: number;
+  reps_or_duration: string;
+  rest_seconds: number;
+  posture_notes: string;
+  order_index: number;
+}
+
+export interface CardDetailsResponse {
+  card: TherapistCard;
+  exercises: Exercise[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class TherapistService {
   private readonly http = inject(HttpClient);
@@ -100,5 +116,10 @@ export class TherapistService {
   /** GET /api/therapist/patients/:id/cards — TASK-305: schede assegnate con conteggio esercizi */
   getPatientCards(patientId: number): Observable<PatientCard[]> {
     return this.http.get<PatientCard[]>(`${this.baseUrl}/patients/${patientId}/cards`);
+  }
+
+  /** GET /api/therapist/cards/:id — Recupera i dettagli di una scheda e dei suoi esercizi */
+  getCardDetails(cardId: number): Observable<CardDetailsResponse> {
+    return this.http.get<CardDetailsResponse>(`${this.baseUrl}/cards/${cardId}`);
   }
 }
