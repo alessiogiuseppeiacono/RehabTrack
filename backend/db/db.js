@@ -245,9 +245,66 @@ async function putData() {
 }
 
 // Esegui il seed (asincrono)
-putData().catch((err) => {
-  console.error('Errore durante il seed:', err.message);
-});
+putData()
+  .then(() => ensureMarcoVerdiExists())
+  .then(() => ensureAnnaNeriExists())
+  .catch((err) => {
+    console.error('Errore durante il seed:', err.message);
+  });
+
+async function ensureMarcoVerdiExists() {
+  const email = 'marco.verdi@email.it';
+  const count = await new Promise((resolve, reject) => {
+    db.get('SELECT COUNT(*) AS cnt FROM users WHERE email = ?', [email], (err, row) => {
+      if (err) reject(err);
+      else resolve(row.cnt);
+    });
+  });
+
+  if (count === 0) {
+    console.log('Inserimento paziente di test aggiuntivo: Marco Verdi...');
+    const hashPaziente = await bcrypt.hash('paziente123', 10);
+    await new Promise((resolve, reject) => {
+      db.run(
+        `INSERT INTO users (email, password, role, first_name, last_name, pathology, clinical_notes, therapist_id)
+         VALUES (?, ?, 'paziente', ?, ?, ?, ?, NULL)`,
+        [email, hashPaziente, 'Marco', 'Verdi', 'Distorsione caviglia destra', 'Rieducazione propriocettiva e rinforzo muscolare post-trauma'],
+        function (err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+        }
+      );
+    });
+    console.log('  Paziente extra (non associato): marco.verdi@email.it / paziente123');
+  }
+}
+
+async function ensureAnnaNeriExists() {
+  const email = 'anna.neri@email.it';
+  const count = await new Promise((resolve, reject) => {
+    db.get('SELECT COUNT(*) AS cnt FROM users WHERE email = ?', [email], (err, row) => {
+      if (err) reject(err);
+      else resolve(row.cnt);
+    });
+  });
+
+  if (count === 0) {
+    console.log('Inserimento paziente di test aggiuntivo: Anna Neri...');
+    const hashPaziente = await bcrypt.hash('paziente123', 10);
+    await new Promise((resolve, reject) => {
+      db.run(
+        `INSERT INTO users (email, password, role, first_name, last_name, pathology, clinical_notes, therapist_id)
+         VALUES (?, ?, 'paziente', ?, ?, ?, ?, NULL)`,
+        [email, hashPaziente, 'Anna', 'Neri', 'Cervicalgia miotensiva', 'Trattamento decontratturante ed esercizi posturali globali'],
+        function (err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+        }
+      );
+    });
+    console.log('  Paziente extra (non associato): anna.neri@email.it / paziente123');
+  }
+}
 
 // Esporta l'istanza del database per gli altri moduli
 module.exports = db;
