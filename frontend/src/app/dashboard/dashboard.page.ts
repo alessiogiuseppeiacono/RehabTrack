@@ -217,11 +217,6 @@ export class DashboardPage implements OnInit {
   onCardCreated(): void {
     this.showComposer = false;
     this.editCardData = null;
-    this.toastCtrl.create({
-      message: 'Scheda salvata con successo',
-      duration: 2000,
-      color: 'success'
-    }).then(t => t.present());
     if (this.selectedPatient) {
       this.selectPatient(this.selectedPatient);
     }

@@ -44,12 +44,15 @@ export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err) => {
       if (err.status === 401) {
         localStorage.removeItem('auth_token');
-        toastCtrl.create({
-          message: 'Sessione scaduta, effettua nuovamente l\'accesso',
-          duration: 3000,
-          color: 'danger'
-        }).then(t => t.present());
-        router.navigateByUrl('/login');
+        // Non mostriamo "Sessione scaduta" se stiamo già tentando il login
+        if (!req.url.includes('/login')) {
+          toastCtrl.create({
+            message: 'Sessione scaduta, effettua nuovamente l\'accesso',
+            duration: 3000,
+            color: 'danger'
+          }).then(t => t.present());
+          router.navigateByUrl('/login');
+        }
       }
       return throwError(() => err);
     })

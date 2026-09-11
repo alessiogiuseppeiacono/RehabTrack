@@ -126,12 +126,12 @@
                 <span class="total-time">Tempo: {{ formatTime(totalElapsedSeconds) }}</span>
               </div>
               
-              <h2 class="exercise-name">Preparati!</h2>
+              <h2 class="prepare-title">Preparati!</h2>
               <p class="prepare-subtitle">{{ currentExercise?.name }}</p>
             </div>
             
             <div class="runner-timer-wrap">
-              <div class="circular-timer">
+              <div class="circular-timer notranslate" translate="no">
                 <span class="timer-digits">{{ countdownSeconds }}</span>
               </div>
             </div>
@@ -169,11 +169,11 @@
 
             <div class="runner-timer-wrap">
               @if (isTimeBased) {
-                <div class="circular-timer">
+                <div class="circular-timer notranslate" translate="no">
                   <span class="timer-digits">{{ formatTime(countdownSeconds) }}</span>
                 </div>
               } @else {
-                <div class="rep-timer">
+                <div class="rep-timer notranslate" translate="no">
                   <span class="rep-digits">{{ currentExercise?.reps_or_duration }}</span>
                 </div>
               }
@@ -212,7 +212,7 @@
             </div>
             
             <div class="runner-timer-wrap">
-              <div class="circular-timer rest-timer">
+              <div class="circular-timer rest-timer notranslate" translate="no">
                 <span class="timer-digits">{{ formatTime(countdownSeconds) }}</span>
               </div>
             </div>
@@ -262,8 +262,10 @@
               <ion-item lines="none" class="feedback-item mt-3">
                 <ion-label position="stacked" class="feedback-label">Note (opzionale)</ion-label>
                 <ion-textarea
-                  placeholder="Descrivi come ti sei sentito..."
+                  class="custom-textarea"
+                  placeholder="Scrivi qui eventuali osservazioni, dolore avvertito o note per il fisioterapista..."
                   [autoGrow]="true"
+                  rows="3"
                   [(ngModel)]="patientNotes"
                 ></ion-textarea>
               </ion-item>
