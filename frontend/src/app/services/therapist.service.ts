@@ -13,7 +13,8 @@ export interface Patient {
   first_name: string;
   last_name: string;
   pathology: string | null;
-  therapist_id: number;
+  clinical_notes?: string | null;
+  therapist_id: number | null;
   created_at: string;
 }
 
@@ -141,5 +142,20 @@ export class TherapistService {
   /** GET /api/therapist/exercises — lista esercizi disponibili nel DB */
   getAvailableExercises(): Observable<{ name: string }[]> {
     return this.http.get<{ name: string }[]>(`${this.baseUrl}/exercises`);
+  }
+
+  /** POST /api/therapist/assign-patient — associa un paziente via email */
+  assignPatientByEmail(email: string): Observable<Patient> {
+    return this.http.post<Patient>(`${this.baseUrl}/assign-patient`, { email });
+  }
+
+  /** DELETE /api/therapist/patients/:id/unassign — dissocia un paziente */
+  unassignPatient(patientId: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/patients/${patientId}/unassign`);
+  }
+
+  /** PUT /api/therapist/patients/:id/notes — aggiorna patologia e note cliniche */
+  updatePatientClinicalNotes(patientId: number, data: { condition?: string; notes?: string }): Observable<Patient> {
+    return this.http.put<Patient>(`${this.baseUrl}/patients/${patientId}/notes`, data);
   }
 }

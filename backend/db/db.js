@@ -40,11 +40,22 @@ db.serialize(() => {
       first_name    TEXT    NOT NULL,
       last_name     TEXT    NOT NULL,
       pathology     TEXT    DEFAULT NULL,
+      clinical_notes TEXT   DEFAULT '',
       therapist_id  INTEGER DEFAULT NULL,
       created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (therapist_id) REFERENCES users(id)
     )
   `);
+
+  // Migrazione: aggiungi clinical_notes se non presente
+  db.all("PRAGMA table_info(users)", (err, columns) => {
+    if (err) return;
+    const hasClinicalNotes = columns.some(c => c.name === 'clinical_notes');
+    if (!hasClinicalNotes) {
+      console.log("Migrazione: Aggiunta clinical_notes a users");
+      db.run("ALTER TABLE users ADD COLUMN clinical_notes TEXT DEFAULT ''");
+    }
+  });
 
   // ─────────────────────────────────────────────
   // TABELLA: cards (schede riabilitative)

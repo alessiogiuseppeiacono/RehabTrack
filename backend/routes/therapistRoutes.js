@@ -2,7 +2,7 @@
 
 const express = require('express');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
-const { getPatients, createPatient, createCard, updateCard, deleteCard, getPatientLogs, getPatientCards, getCardDetails, getExercises } = require('../controllers/therapistControllers');
+const { getPatients, createPatient, createCard, updateCard, deleteCard, getPatientLogs, getPatientCards, getCardDetails, getExercises, updatePatientNotes, assignPatient, unassignPatient } = require('../controllers/therapistControllers');
 
 const router = express.Router();
 
@@ -11,6 +11,10 @@ router.use(verifyToken, requireRole('fisioterapista'));
 
 router.get('/patients', getPatients);
 router.post('/patients', createPatient);
+router.post('/assign-patient', assignPatient);
+router.put('/patients/:id/notes', updatePatientNotes);
+router.delete('/patients/:id/unassign', unassignPatient);
+
 router.post('/cards', createCard);
 router.put('/cards/:id', updateCard);
 router.delete('/cards/:id', deleteCard);

@@ -142,8 +142,65 @@ async function getCardDetails(req, res) {
   res.json({ card, exercises });
 }
 
-module.exports = { getPatients, createPatient, createCard, updateCard, deleteCard, getPatientLogs, getPatientCards, getCardDetails, getExercises };
+/**
+ * PUT /api/therapist/patients/:id/notes
+ * Aggiorna le note cliniche e la patologia del paziente.
+ */
+async function updatePatientNotes(req, res) {
+  const patientId = Number(req.params.id);
+  const patient = await User.findById(patientId);
+  if (!patient || patient.role !== 'paziente' || patient.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Paziente non trovato o non autorizzato' });
+  }
 
+  const { condition, notes } = req.body;
+  await User.updatePatientNotes(patientId, { pathology: condition, clinical_notes: notes });
+  const updated = await User.findById(patientId);
+  res.json(updated);
+}
+
+/**
+ * POST /api/therapist/assign-patient
+ * Assegna un paziente esistente al terapista (via email).
+ */
+async function assignPatient(req, res) {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email obbligatoria' });
+  }
+
+  const patient = await User.findByEmail(email);
+  if (!patient || patient.role !== 'paziente') {
+    return res.status(404).json({ error: 'Paziente non trovato' });
+  }
+  if (patient.therapist_id === req.user.id) {
+    return res.status(400).json({ error: 'Paziente già assegnato a te' });
+  }
+  if (patient.therapist_id) {
+    return res.status(400).json({ error: 'Paziente già assegnato a un altro terapista' });
+  }
+
+  await User.updateTherapist(patient.id, req.user.id);
+  const updated = await User.findById(patient.id);
+  res.json(updated);
+}
+
+/**
+ * DELETE /api/therapist/patients/:id/unassign
+ * Dissocia un paziente dal terapista (imposta therapist_id a NULL).
+ */
+async function unassignPatient(req, res) {
+  const patientId = Number(req.params.id);
+  const patient = await User.findById(patientId);
+  if (!patient || patient.role !== 'paziente' || patient.therapist_id !== req.user.id) {
+    return res.status(403).json({ error: 'Paziente non trovato o non autorizzato' });
+  }
+
+  await User.updateTherapist(patientId, null);
+  res.json({ success: true, message: 'Paziente dissociato' });
+}
+
+module.exports = { getPatients, createPatient, createCard, updateCard, deleteCard, getPatientLogs, getPatientCards, getCardDetails, getExercises, updatePatientNotes, assignPatient, unassignPatient };
 /**
  * PUT /api/therapist/cards/:id
  * Aggiorna titolo, date e (opzionalmente) esercizi di una scheda.

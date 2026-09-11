@@ -20,7 +20,8 @@ import {
   addCircleOutline, analyticsOutline, alertCircleOutline,
   bodyOutline, calendarOutline, heartOutline, timeOutline,
   chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
-  barbellOutline, trashOutline, createOutline, saveOutline
+  barbellOutline, trashOutline, createOutline, saveOutline,
+  personAddOutline, personRemoveOutline
 } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
 import { TherapistService, Patient, PatientLog, PatientCard, CardDetailsResponse } from '../services/therapist.service';
@@ -86,7 +87,8 @@ export class DashboardPage implements OnInit {
       addCircleOutline, analyticsOutline, alertCircleOutline,
       bodyOutline, calendarOutline, heartOutline, timeOutline,
       chevronForwardOutline, pulseOutline, layersOutline, fitnessOutline,
-      barbellOutline, trashOutline, createOutline, saveOutline
+      barbellOutline, trashOutline, createOutline, saveOutline,
+      personAddOutline, personRemoveOutline
     });
   }
 
@@ -234,5 +236,90 @@ export class DashboardPage implements OnInit {
   // TASK-303: logout — pulisce token e torna al login
   logout(): void {
     this.authService.logout();
+  }
+
+  async promptAddPatient(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Aggiungi Paziente',
+      message: 'Inserisci l\'email del paziente da associare',
+      inputs: [{ name: 'email', type: 'email', placeholder: 'Email paziente' }],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Associa',
+          handler: (data) => {
+            if (data.email) {
+              this.therapistService.assignPatientByEmail(data.email).subscribe({
+                next: () => this.loadPatients(),
+                error: (err) => console.error('Errore associazione paziente', err)
+              });
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async promptUnassignPatient(patient: Patient, event: Event): Promise<void> {
+    event.stopPropagation();
+    const alert = await this.alertCtrl.create({
+      header: 'Dissocia Paziente',
+      message: `Sei sicuro di voler dissociare ${patient.first_name} ${patient.last_name}?`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Dissocia',
+          role: 'destructive',
+          handler: () => {
+            this.therapistService.unassignPatient(patient.id).subscribe({
+              next: () => {
+                if (this.selectedPatient?.id === patient.id) {
+                  this.selectedPatient = null;
+                }
+                this.loadPatients();
+              },
+              error: (err) => console.error('Errore dissociazione paziente', err)
+            });
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  async promptEditClinicalNotes(): Promise<void> {
+    if (!this.selectedPatient) return;
+    const patient = this.selectedPatient;
+    const alert = await this.alertCtrl.create({
+      header: 'Note Cliniche',
+      inputs: [
+        { name: 'condition', type: 'text', placeholder: 'Patologia/Condizione', value: patient.pathology },
+        { name: 'notes', type: 'textarea', placeholder: 'Note cliniche', value: patient.clinical_notes }
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Salva',
+          handler: (data) => {
+            this.therapistService.updatePatientClinicalNotes(patient.id, data).subscribe({
+              next: (updatedPatient) => {
+                this.selectedPatient = updatedPatient;
+                const idx = this.patients.findIndex(p => p.id === updatedPatient.id);
+                if (idx > -1) {
+                  this.patients[idx] = updatedPatient;
+                  // Aggiorna anche filteredPatients
+                  const fIdx = this.filteredPatients.findIndex(p => p.id === updatedPatient.id);
+                  if (fIdx > -1) this.filteredPatients[fIdx] = updatedPatient;
+                }
+                this.cdr.detectChanges();
+              },
+              error: (err) => console.error('Errore aggiornamento note', err)
+            });
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

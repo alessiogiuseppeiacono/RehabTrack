@@ -67,7 +67,7 @@ const User = {
   findById(id) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT id, email, role, first_name, last_name, pathology, therapist_id, created_at
+        SELECT id, email, role, first_name, last_name, pathology, clinical_notes, therapist_id, created_at
         FROM users
         WHERE id = ?
       `;
@@ -86,7 +86,7 @@ const User = {
   findPatientsByTherapist(therapistId) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT id, email, role, first_name, last_name, pathology, therapist_id, created_at
+        SELECT id, email, role, first_name, last_name, pathology, clinical_notes, therapist_id, created_at
         FROM users
         WHERE role = 'paziente' AND therapist_id = ?
         ORDER BY last_name ASC, first_name ASC
@@ -109,7 +109,7 @@ const User = {
     }
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT id, email, role, first_name, last_name, pathology, therapist_id, created_at
+        SELECT id, email, role, first_name, last_name, pathology, clinical_notes, therapist_id, created_at
         FROM users
         WHERE role = 'paziente'
         ORDER BY last_name ASC, first_name ASC
@@ -118,6 +118,38 @@ const User = {
         if (err) return reject(err);
         resolve(rows || []);
       });
+    });
+  },
+
+  /**
+   * Aggiorna le note cliniche di un paziente
+   */
+  updatePatientNotes(id, { pathology, clinical_notes }) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET pathology = ?, clinical_notes = ? WHERE id = ?',
+        [pathology || null, clinical_notes || '', id],
+        function (err) {
+          if (err) return reject(err);
+          resolve();
+        }
+      );
+    });
+  },
+
+  /**
+   * Associa o dissocia un terapista
+   */
+  updateTherapist(id, therapistId) {
+    return new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET therapist_id = ? WHERE id = ?',
+        [therapistId, id],
+        function (err) {
+          if (err) return reject(err);
+          resolve();
+        }
+      );
     });
   }
 };

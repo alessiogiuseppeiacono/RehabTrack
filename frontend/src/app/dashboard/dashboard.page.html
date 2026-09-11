@@ -24,9 +24,14 @@
     ═══════════════════════════════════════════════════════ -->
     <aside class="panel-master">
       <div class="panel-master-header">
-        <h2 class="panel-title">
-          <ion-icon name="people-outline"></ion-icon>
-          Pazienti
+        <h2 class="panel-title" style="display:flex; justify-content:space-between; align-items:center; width:100%">
+          <span>
+            <ion-icon name="people-outline"></ion-icon>
+            Pazienti
+          </span>
+          <ion-button fill="clear" size="small" (click)="promptAddPatient()">
+            <ion-icon name="person-add-outline" slot="icon-only"></ion-icon>
+          </ion-button>
         </h2>
 
         <!-- TASK-303: barra di ricerca filtro locale -->
@@ -86,12 +91,16 @@
                   {{ patient.pathology || 'Patologia non specificata' }}
                 </p>
               </ion-label>
-              <ion-icon
-                slot="end"
-                name="chevron-forward-outline"
-                color="medium"
-                [style.opacity]="selectedPatient?.id === patient.id ? '1' : '0.3'">
-              </ion-icon>
+              <div slot="end" style="display:flex; align-items:center;">
+                <ion-button fill="clear" color="danger" size="small" (click)="promptUnassignPatient(patient, $event)">
+                  <ion-icon name="person-remove-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-icon
+                  name="chevron-forward-outline"
+                  color="medium"
+                  [style.opacity]="selectedPatient?.id === patient.id ? '1' : '0.3'">
+                </ion-icon>
+              </div>
             </ion-item>
           }
         </ion-list>
@@ -124,11 +133,20 @@
           <div class="detail-info">
             <h1 class="detail-name">{{ selectedPatient.first_name }} {{ selectedPatient.last_name }}</h1>
             <p class="detail-email">{{ selectedPatient.email }}</p>
-            @if (selectedPatient.pathology) {
-              <ion-chip color="primary" class="pathology-chip">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <ion-chip color="primary" class="pathology-chip" (click)="promptEditClinicalNotes()">
                 <ion-icon name="body-outline"></ion-icon>
-                <ion-label>{{ selectedPatient.pathology }}</ion-label>
+                <ion-label>{{ selectedPatient.pathology || 'Patologia non specificata' }}</ion-label>
               </ion-chip>
+              <ion-button fill="clear" size="small" (click)="promptEditClinicalNotes()" title="Modifica note cliniche">
+                <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+            @if (selectedPatient.clinical_notes) {
+              <p style="margin-top:8px; font-size:14px; color:var(--ion-color-medium);">
+                <strong>Note cliniche:</strong><br/>
+                {{ selectedPatient.clinical_notes }}
+              </p>
             }
           </div>
           <!-- TASK-304 (fix): pulsanti azione — entrambi ora attivi -->
