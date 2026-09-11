@@ -11,9 +11,6 @@ import { playOutline, pauseOutline, stopOutline, sendOutline, cameraOutline, tra
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
-// TASK-403: forma del dato emesso al termine della sessione.
-// TASK-404: ora include pain_level (obbligatorio) e patient_notes (opzionale).
-// TASK-502: aggiunta photo_file per inviare l'immagine
 export interface SessionReport {
   duration_seconds: number;
   pain_level: number;
@@ -21,11 +18,8 @@ export interface SessionReport {
   photo_file?: Blob | File;
 }
 
-// Stato aggiunto 'report': il form dolore appare dopo che il timer viene fermato.
 type TimerState = 'idle' | 'running' | 'paused' | 'report';
 
-// TASK-403 + TASK-404: cronometro di sessione con form report fine sessione inline.
-// Flusso: Avvia → (Pausa) → Termina → form pain_level + note → Invia Feedback → emette SessionReport.
 @Component({
   selector: 'app-session-timer',
   standalone: true,
@@ -62,7 +56,6 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
       </div>
     }
 
-    <!-- TASK-404: form report fine sessione — visibile solo nello stato 'report' -->
     @if (state === 'report') {
       <div class="report-form">
         <p class="report-header">Sessione completata — lascia il tuo feedback</p>
@@ -192,7 +185,6 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
       color: #f43f5e;
       border: 1.5px solid #fecdd3;
     }
-    /* TASK-404: stili form report */
     .report-form {
       display: flex;
       flex-direction: column;
@@ -240,10 +232,6 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
   `],
 })
 export class SessionTimerComponent implements OnDestroy {
-  /**
-   * TASK-404: emette il report completo (duration + pain_level + notes).
-   * Il tipo è cambiato da number a SessionReport per includere il feedback dolore.
-   */
   @Output() finished = new EventEmitter<SessionReport>();
 
   private readonly cdr = inject(ChangeDetectorRef);
@@ -253,7 +241,6 @@ export class SessionTimerComponent implements OnDestroy {
   state: TimerState = 'idle';
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
-  // TASK-404: valori del form report
   painLevel = 5;
   patientNotes = '';
   photoPreview: string | null = null;
@@ -293,15 +280,12 @@ export class SessionTimerComponent implements OnDestroy {
     this.cdr.markForCheck();
   }
 
-  // TASK-404: "Termina" non emette più direttamente — apre il form report.
   stopForReport(): void {
     this.clearTimer();
     this.state = 'report';
     this.cdr.markForCheck();
   }
 
-  // TODO (TASK-404): Testare visivamente il form del dolore e l'invio del payload non appena il TASK-304 (Compositore Schede) genererà dati reali nello Sprint 3.
-  // TASK-404: invio del form — emette il report completo e azzera il componente.
   submitReport(): void {
     console.log('DEBUG submitSession - photo presente?:', !!this.photoBlob, this.photoBlob);
     

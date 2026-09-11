@@ -1,6 +1,3 @@
-// TASK-303: Dashboard Desktop Fisioterapista — layout master-detail.
-// TASK-304: integrato CardComposerComponent (modale compositore schede).
-// TASK-305: sezione schede assegnate + modale feedback dolore & diario posturale.
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -53,30 +50,24 @@ export class DashboardPage implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  // TASK-303: stato lista pazienti
   patients: Patient[] = [];
   filteredPatients: Patient[] = [];
   loadingPatients = true;
   patientsError: string | null = null;
 
-  // TASK-303: paziente selezionato e relativi log
   selectedPatient: Patient | null = null;
   patientLogs: PatientLog[] = [];
   loadingLogs = false;
   logsError: string | null = null;
 
-  // TASK-303: filtro ricerca
   searchQuery = '';
 
-  // TASK-304: controllo visibilità modale compositore
   showComposer = false;
 
-  // TASK-305: schede assegnate al paziente selezionato
   patientCards: PatientCard[] = [];
   loadingCards = false;
   cardsError: string | null = null;
 
-  // TASK-305: controllo visibilità modale feedback & diario
   showFeedback = false;
 
   // Modifica scheda: dati per il composer in edit mode
@@ -97,7 +88,6 @@ export class DashboardPage implements OnInit {
     this.loadPatients();
   }
 
-  // TASK-303: carica lista pazienti dal backend
   loadPatients(): void {
     this.loadingPatients = true;
     this.patientsError = null;
@@ -117,7 +107,6 @@ export class DashboardPage implements OnInit {
       });
   }
 
-  // TASK-303: filtro ricerca in tempo reale sulla lista locale
   onSearch(event: CustomEvent): void {
     const q = (event.detail.value ?? '').toLowerCase().trim();
     this.searchQuery = q;
@@ -130,7 +119,6 @@ export class DashboardPage implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // TASK-303: selezione paziente → carica log e schede
   selectPatient(patient: Patient): void {
     this.selectedPatient = patient;
     this.patientLogs = [];
@@ -141,7 +129,6 @@ export class DashboardPage implements OnInit {
     this.showFeedback = false;
     this.loadingLogs = true;
     this.loadingCards = true;
-    // TASK-305: carica log e schede in parallelo
     this.therapistService.getPatientLogs(patient.id)
       .pipe(finalize(() => { this.loadingLogs = false; this.cdr.detectChanges(); }))
       .subscribe({
@@ -156,7 +143,6 @@ export class DashboardPage implements OnInit {
       });
   }
 
-  // TASK-304: apre il modale compositore schede (creazione)
   openComposer(): void {
     this.editCardData = null;
     this.showComposer = true;
@@ -213,7 +199,6 @@ export class DashboardPage implements OnInit {
     await alert.present();
   }
 
-  // TASK-304: scheda creata/aggiornata → chiude modale, ricarica schede e log
   onCardCreated(): void {
     this.showComposer = false;
     this.editCardData = null;
@@ -222,13 +207,11 @@ export class DashboardPage implements OnInit {
     }
   }
 
-  // TASK-305: apre modale feedback & diario
   openFeedback(): void {
     this.showFeedback = true;
     this.cdr.detectChanges();
   }
 
-  // Sprint Finale: colore badge dolore a 3 livelli (allineato a FeedbackViewerComponent)
   painColor(level: number | null): string {
     if (level === null) return 'medium';
     if (level <= 4) return 'success';
@@ -236,7 +219,6 @@ export class DashboardPage implements OnInit {
     return 'danger';
   }
 
-  // TASK-303: formatta secondi in mm:ss leggibile
   formatDuration(seconds: number): string {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -247,7 +229,6 @@ export class DashboardPage implements OnInit {
     this.router.navigate(['/dashboard/card', cardId]);
   }
 
-  // TASK-303: logout — pulisce token e torna al login
   async logout(): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Conferma',

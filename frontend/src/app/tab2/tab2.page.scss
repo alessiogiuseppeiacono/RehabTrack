@@ -1,4 +1,4 @@
-// TASK-502: Stili Diario Posturale — griglia foto quadrata, cestino sovrapposto, preview full-screen
+
 
 // ── Stato vuoto ──────────────────────────────────────────────────────────────
 .empty-state {
@@ -61,7 +61,7 @@
   margin: 4px;
 }
 
-// TASK-502: object-fit cover per riempire lo spazio senza distorcere
+// object-fit cover per riempire lo spazio senza distorcere
 .photo-img {
   width: 100%;
   height: 100%;
@@ -69,7 +69,7 @@
   display: block;
 }
 
-// TASK-502: bottone cestino sovrapposto in alto a destra
+// bottone cestino sovrapposto in alto a destra
 .delete-btn {
   position: absolute;
   top: 6px;

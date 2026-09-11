@@ -20,7 +20,6 @@ import { PatientService, SessionLogResponse } from '../services/patient.service'
 import { AuthService } from '../services/auth.service';
 import { finalize } from 'rxjs';
 
-// TASK-502: chiave localStorage per la persistenza della galleria posturale
 const STORAGE_KEY = 'rehabtrack_photos';
 
 @Component({
@@ -54,21 +53,17 @@ export class Tab2Page implements OnInit, ViewWillEnter {
   searchQuery = '';
   activeFilter: 'all' | 'mild' | 'moderate' | 'intense' | 'notes' = 'all';
 
-  // TASK-502: array foto (DataUrl); caricato da localStorage all'avvio
   photos: string[] = [];
 
-  // TASK-502: foto selezionata per l'anteprima full-screen
   selectedPhoto: string | null = null;
 
   constructor(
     private cdr: ChangeDetectorRef,
     private patientService: PatientService
   ) {
-    // TASK-502: 'camera' (solid) usato nel FAB per massima visibilità
     addIcons({ camera, trashOutline, closeOutline, documentTextOutline, searchOutline, logOutOutline });
   }
 
-  // TASK-502: ricarica la galleria dal localStorage all'inizializzazione
   ngOnInit(): void {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -163,12 +158,9 @@ export class Tab2Page implements OnInit, ViewWillEnter {
     return `${s} sec`;
   }
 
-  // TASK-502: scatto/selezione foto — platform-first:
-  // su browser desktop bypassa Camera.getPhoto() e va diretto al file picker
   async takePicture(): Promise<void> {
     console.log('FAB cliccato');
     if (!Capacitor.isNativePlatform()) {
-      // Su browser desktop esegui subito il fallback
       this.openFilePicker();
       return;
     }
@@ -191,7 +183,6 @@ export class Tab2Page implements OnInit, ViewWillEnter {
     }
   }
 
-  // TASK-502: fallback per ambienti non nativi (browser desktop)
   private openFilePicker(): void {
     const input = document.createElement('input');
     input.type = 'file';
@@ -211,26 +202,22 @@ export class Tab2Page implements OnInit, ViewWillEnter {
     input.click();
   }
 
-  // TASK-502: eliminazione foto per indice con aggiornamento persistenza
   deletePhoto(index: number): void {
     this.photos.splice(index, 1);
     this.persist();
     this.cdr.detectChanges();
   }
 
-  // TASK-502: apertura modal preview full-screen
   openPreview(photo: string): void {
     this.selectedPhoto = photo;
     this.cdr.detectChanges();
   }
 
-  // TASK-502: chiusura modal preview
   closePreview(): void {
     this.selectedPhoto = null;
     this.cdr.detectChanges();
   }
 
-  // TASK-502: salva l'array aggiornato in localStorage
   private persist(): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.photos));
   }

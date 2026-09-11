@@ -31,9 +31,7 @@ export interface TodayCardResponse {
 
 export interface SessionLog {
   card_id: number;
-  // TASK-403: durata in secondi inviata dal timer di sessione
   duration_seconds: number;
-  // TASK-404 (prossimo sprint): feedback dolore 1-10 dal form di fine sessione
   pain_level?: number;
   patient_notes?: string;
 }
@@ -70,13 +68,11 @@ export class PatientService {
       if (logData.patient_notes) {
         formData.append('patient_notes', logData.patient_notes);
       }
-      // Il nome del parametro 'photo_file' DEVE combaciare con upload.single('photo_file')
       formData.append('photo_file', logData.photo_file, 'diary.jpg');
       
       console.log("FormData photo_file pronto:", !!formData.get('photo_file'));
       return this.http.post(`${this.baseUrl}/session-logs`, formData);
     } else {
-      // Fallback a JSON se non c'è la foto
       const payload: any = {
         card_id: logData.card_id,
         duration_seconds: logData.duration_seconds,

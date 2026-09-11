@@ -1,6 +1,4 @@
-// TASK-304: CardComposerComponent — modale compositore schede esercizi.
-// Standalone, si apre dalla dashboard al click "+ Nuova Scheda" o "Modifica".
-// Supporta sia creazione che modifica (editCard input).
+/** Componente standalone per creazione o modifica schede. */
 import {
   Component, inject, Input, Output, EventEmitter,
   ChangeDetectorRef, OnInit

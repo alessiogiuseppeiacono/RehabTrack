@@ -1,12 +1,11 @@
-// TASK-303: TherapistService — client HTTP per le API del fisioterapista.
-// TASK-304: aggiunto createCard().
-// Pattern identico a PatientService: inject(HttpClient), URL assoluti, Observable.
+/**
+ * Client HTTP per le API del fisioterapista.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-// TASK-303: interfacce allineate alla risposta di User.findPatientsByTherapist()
 export interface Patient {
   id: number;
   email: string;
@@ -18,7 +17,6 @@ export interface Patient {
   created_at: string;
 }
 
-// TASK-303: Card dal backend (cardModel.js — Card.findByPatient)
 export interface TherapistCard {
   id: number;
   patient_id: number;
@@ -29,12 +27,10 @@ export interface TherapistCard {
   created_at: string;
 }
 
-// TASK-305: Card con conteggio esercizi (GET /patients/:id/cards JOIN exercises)
 export interface PatientCard extends TherapistCard {
   exercise_count: number;
 }
 
-// TASK-303: SessionLog dal backend (therapistControllers.js — getPatientLogs JOIN cards)
 export interface PatientLog {
   id: number;
   card_id: number;
@@ -47,7 +43,6 @@ export interface PatientLog {
   photo_base64?: string | null;
 }
 
-// TASK-304: payload esercizio — campi matching cardModel.js Exercise.createBulk()
 export interface CardExercisePayload {
   name: string;
   sets: number;
@@ -56,7 +51,6 @@ export interface CardExercisePayload {
   posture_notes?: string;
 }
 
-// TASK-304: payload scheda — matching therapistControllers.js createCard()
 export interface CardPayload {
   patient_id: number;
   title: string;
@@ -65,7 +59,6 @@ export interface CardPayload {
   exercises: CardExercisePayload[];
 }
 
-// TASK-304: risposta 201 da POST /api/therapist/cards
 export interface CreateCardResponse {
   card: TherapistCard;
   exerciseIds: number[];
@@ -90,7 +83,7 @@ export interface CardDetailsResponse {
 @Injectable({ providedIn: 'root' })
 export class TherapistService {
   private readonly http = inject(HttpClient);
-  // TASK-303: URL assoluto — stesso pattern di PatientService (evita crash "Invalid base URL")
+  // Usa URL assoluto per prevenire "Invalid base URL" crash in Capacitor
   private readonly baseUrl = `${environment.apiUrl}/therapist`;
 
   /** GET /api/therapist/patients — lista pazienti del terapista autenticato */

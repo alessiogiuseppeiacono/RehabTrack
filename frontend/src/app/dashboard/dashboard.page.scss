@@ -1,4 +1,4 @@
-// TASK-303: Dashboard Desktop Fisioterapista — CSS master-detail layout
+
 
 // ── Variabili ─────────────────────────────────────────────────────────────────
 :host {
@@ -212,7 +212,7 @@
     box-shadow: 0 6px 20px rgba(0,0,0,.1);
   }
 
-  // TASK-303: evidenziazione dolore acuto (pain_level > 7)
+  // evidenziazione dolore acuto (pain_level > 7)
   &.pain-critical {
     --background: #fff5f5;
     border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
@@ -266,7 +266,7 @@
   }
 }
 
-// ── TASK-304/305 (fix layout): dimensioni modali desktop ─────────────────────
+// ── dimensioni modali desktop ─────────────────────
 ion-modal {
   --width: 750px;
   --height: 85vh;

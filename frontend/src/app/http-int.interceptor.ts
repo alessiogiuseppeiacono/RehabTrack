@@ -27,7 +27,7 @@ export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }
 
-  // TASK: Previene "TypeError: Failed to construct 'URL': Invalid base URL" su dispositivi mobili
+  // Workaround: Previene "TypeError: Failed to construct 'URL': Invalid base URL" su dispositivi mobili
   try {
     // Prova a parsarlo come URL assoluto. Se fallisce, usa il fallback
     new URL(url);

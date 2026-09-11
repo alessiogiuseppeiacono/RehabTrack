@@ -43,8 +43,6 @@ async function getTodayCard(req, res) {
  * POST /api/patient/session-logs
  * Salva il log di fine sessione.
  * Body: { card_id, duration_seconds, pain_level?, patient_notes? }
- * pain_level (1-10) è opzionale: arriva dal timer di sessione (TASK-403)
- * e sarà reso obbligatorio dal form di report TASK-404.
  */
 async function saveSessionLog(req, res) {
   const { card_id, pain_level, patient_notes, duration_seconds } = req.body;
@@ -75,10 +73,8 @@ async function saveSessionLog(req, res) {
     return res.status(403).json({ error: 'Scheda non associata al paziente autenticato' });
   }
 
-  // Percorso file se caricato (URL relativo per il frontend)
   const photoUrl = req.file ? `/uploads/diaries/${req.file.filename}` : null;
 
-  // TASK-403: log con durata della sessione dal timer (pain_level può mancare)
   const id = await new Promise((resolve, reject) => {
     db.run(
       `INSERT INTO session_logs (card_id, patient_id, pain_level, patient_notes, duration_seconds, photo_base64)

@@ -68,7 +68,6 @@ export class LoginPage implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        // FIX: il backend risponde con { error: "..." }, non { message: "..." }
         this.errorMsg = err.error?.error || 'Credenziali non valide.';
         this.cdr.markForCheck();
       },
