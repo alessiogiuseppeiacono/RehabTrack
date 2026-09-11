@@ -64,6 +64,22 @@ export class FeedbackViewerComponent implements OnInit {
     return 'danger';
   }
 
+  // Colore esadecimale per la timeline CSS
+  getPainHexColor(level: number | null): string {
+    if (level === null) return '#92949c';
+    if (level <= 4) return '#2dd36f';
+    if (level <= 7) return '#ffc409';
+    return '#eb445a';
+  }
+
+  // Ultime 5 sessioni con dolore, in ordine cronologico (dalla più vecchia alla più recente)
+  get painTimelineLogs(): PatientLog[] {
+    return [...this.logs]
+      .filter(l => l.pain_level !== null)
+      .slice(0, 5)
+      .reverse();
+  }
+
   // TASK-305: media dolore su sessioni con pain_level valorizzato
   get avgPain(): string {
     const withPain = this.logs.filter(l => l.pain_level !== null);

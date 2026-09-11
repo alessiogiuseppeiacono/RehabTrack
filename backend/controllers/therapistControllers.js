@@ -89,7 +89,7 @@ async function getPatientLogs(req, res) {
     db.all(
       `SELECT sl.*, c.title AS card_title
        FROM session_logs sl
-       JOIN cards c ON c.id = sl.card_id
+       LEFT JOIN cards c ON c.id = sl.card_id
        WHERE sl.patient_id = ?
        ORDER BY sl.completed_at DESC`,
       [patientId],

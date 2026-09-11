@@ -44,7 +44,7 @@
 
   <!-- TASK-305: cronologia feedback sessioni -->
   @if (!loading && !error && logs.length > 0) {
-
+    <div style="padding-bottom: 24px;">
       <!-- Riepilogo statistico rapido -->
       <div class="stats-row">
         <div class="stat-chip">
@@ -60,6 +60,24 @@
           <span class="stat-label">Sessioni critiche (&gt;7)</span>
         </div>
       </div>
+
+      <!-- TASK-305: Andamento Dolore Timeline -->
+      @if (painTimelineLogs.length > 0) {
+        <h3 class="section-title">
+          <ion-icon name="analytics-outline"></ion-icon>
+          Andamento Dolore (Ultime {{ painTimelineLogs.length }})
+        </h3>
+        <div class="pain-timeline">
+          @for (log of painTimelineLogs; track log.id) {
+            <div class="pt-step">
+              <div class="pt-date">{{ log.completed_at | date:'dd/MM' }}</div>
+              <div class="pt-node" [style.background]="getPainHexColor(log.pain_level)">
+                {{ log.pain_level }}
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       <!-- TASK-305: tabella sessioni -->
       <h3 class="section-title">
@@ -80,7 +98,7 @@
               <span>{{ log.completed_at | date:'dd/MM/yy HH:mm' }}</span>
             </div>
             <!-- Scheda -->
-            <div class="session-card-name">{{ log.card_title }}</div>
+            <div class="session-card-name">{{ log.card_title || 'Scheda Eliminata' }}</div>
             <!-- Durata -->
             <div class="session-duration">
               <ion-icon name="time-outline"></ion-icon>
@@ -124,7 +142,7 @@
           <p>Le foto allegate alle sessioni verranno visualizzate all'interno di ogni singola voce cronologica.</p>
         </ion-text>
       </div>
-
+    </div>
   }
 
 </ion-content>
