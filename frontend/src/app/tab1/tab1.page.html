@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>La Mia Scheda</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" aria-label="Logout">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -261,6 +266,25 @@
                   [autoGrow]="true"
                   [(ngModel)]="patientNotes"
                 ></ion-textarea>
+              </ion-item>
+
+              <!-- Aggiunta Foto (Opzionale) -->
+              <ion-item lines="none" class="feedback-item photo-section mt-3">
+                <div class="photo-container" style="width: 100%; display: flex; justify-content: center; padding: 0.5rem 0;">
+                  @if (!photoPreview) {
+                    <ion-button fill="outline" color="medium" (click)="takePicture()" class="photo-btn">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      Aggiungi Foto
+                    </ion-button>
+                  } @else {
+                    <div class="preview-wrapper" style="position: relative; display: flex; align-items: center; gap: 1rem;">
+                      <img [src]="photoPreview" class="thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;" alt="Anteprima foto" />
+                      <ion-button fill="clear" color="danger" size="small" (click)="removePhoto()">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </div>
+                  }
+                </div>
               </ion-item>
             </div>
 

@@ -1,6 +1,11 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Diario Posturale</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" aria-label="Logout">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -90,6 +95,12 @@
                 <div class="session-notes">
                   <strong>Note:</strong>
                   <p>{{ log.patient_notes }}</p>
+                </div>
+              }
+              @if (log.photo_base64) {
+                <div class="session-photo">
+                  <strong>Foto allegata:</strong>
+                  <img [src]="'http://localhost:3000' + (log.photo_base64.startsWith('/') ? log.photo_base64 : '/' + log.photo_base64)" loading="lazy" class="log-photo" alt="Foto sessione" />
                 </div>
               }
             </ion-card-content>

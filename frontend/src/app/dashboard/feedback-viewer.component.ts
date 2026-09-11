@@ -3,9 +3,8 @@
 import { Component, inject, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
-  IonButton, IonButtons, IonIcon, IonSpinner, IonText,
-  IonBadge
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon,
+  IonList, IonItem, IonLabel, IonBadge, IonText, IonSpinner, IonImg
 } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -22,9 +21,8 @@ import { TherapistService, PatientLog, Patient } from '../services/therapist.ser
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButton, IonButtons, IonIcon, IonSpinner, IonText,
-    IonBadge
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon,
+    IonList, IonItem, IonLabel, IonBadge, IonText, IonSpinner, IonImg
   ],
 })
 

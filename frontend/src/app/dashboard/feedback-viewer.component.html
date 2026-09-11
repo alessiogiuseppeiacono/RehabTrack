@@ -98,6 +98,12 @@
                 💬 {{ log.patient_notes }}
               </div>
             }
+            <!-- Foto allegata -->
+            @if (log.photo_base64) {
+              <div class="session-photo-container">
+                <img [src]="'http://localhost:3000' + (log.photo_base64.startsWith('/') ? log.photo_base64 : '/' + log.photo_base64)" loading="lazy" class="session-photo-img" alt="Foto diario" />
+              </div>
+            }
           </div>
         }
       </div>
@@ -108,15 +114,10 @@
         Diario Posturale
       </h3>
 
-      <!-- ponytail: le foto sono salvate in localStorage del dispositivo paziente,
-           non vengono inviate al server (nessun endpoint lato backend per le foto).
-           Upgrade path: aggiungere POST /api/patient/session-logs con photo_base64
-           e un campo nella dashboard che le recuperi dal log. -->
       <div class="photo-empty">
         <ion-icon name="camera-outline"></ion-icon>
         <ion-text color="medium">
-          <p>Le foto del diario posturale vengono salvate localmente sul dispositivo del paziente.</p>
-          <p>Per visualizzarle qui sarà necessario sincronizzarle con il server (funzionalità futura).</p>
+          <p>Le foto allegate alle sessioni verranno visualizzate all'interno di ogni singola voce cronologica.</p>
         </ion-text>
       </div>
 

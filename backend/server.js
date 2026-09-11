@@ -13,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());           // CORS aperto su tutte le origini
 app.use(express.json());   // Parsing body JSON
 
+// File statici
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Mount delle rotte
 app.use('/api/auth', authRoutes);
 app.use('/api/therapist', therapistRoutes);

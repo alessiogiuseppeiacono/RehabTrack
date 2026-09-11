@@ -158,6 +158,19 @@ ion-content {
     border-top: 1px solid rgba(0, 0, 0, .06);
     white-space: pre-wrap;
   }
+
+  .session-photo-container {
+    grid-column: 1 / -1;
+    margin-top: 0.75rem;
+    
+    .session-photo-img {
+      width: 100%;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, .06);
+    }
+  }
 }
 
 // ── Diario posturale empty ─────────────────────────────────────────────────────

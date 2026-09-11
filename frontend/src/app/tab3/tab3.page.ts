@@ -1,5 +1,11 @@
-import { Component, OnDestroy } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { mapOutline, logOutOutline } from 'ionicons/icons';
+import { AuthService } from '../services/auth.service';
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
 
@@ -23,11 +29,28 @@ const PALERMO: L.LatLngExpression = [38.1157, 13.3615];
   standalone: true,
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
-  imports: [IonHeader, IonToolbar, IonTitle, IonContent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonButton,
+    IonIcon
+  ],
 })
-export class Tab3Page implements OnDestroy {
+export class Tab3Page implements OnInit, OnDestroy {
+  private map: L.Map | undefined | null = null;
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  private map: L.Map | null = null;
+  constructor() {
+    addIcons({ mapOutline, logOutOutline });
+  }
+
+  ngOnInit(): void {}
 
   // TASK-503: ionViewDidEnter garantisce che il div #map sia nel DOM
   ionViewDidEnter(): void {
@@ -60,6 +83,11 @@ export class Tab3Page implements OnDestroy {
       // TASK-504: tenta la geolocalizzazione dopo che la mappa è stabile
       this.locateUser();
     }, 200);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   // TASK-504: acquisisce la posizione GPS e centra la mappa sull'utente.

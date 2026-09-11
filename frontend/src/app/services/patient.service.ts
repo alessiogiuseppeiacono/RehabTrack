@@ -59,8 +59,32 @@ export class PatientService {
     return this.http.get<TodayCardResponse>(`${this.baseUrl}/today-card`);
   }
 
-  saveSessionLog(log: SessionLog): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/session-logs`, log);
+  saveSessionLog(logData: { card_id: number; duration_seconds: number; pain_level?: number; patient_notes?: string; photo_file?: Blob | File }): Observable<any> {
+    if (logData.photo_file) {
+      const formData = new FormData();
+      formData.append('card_id', String(logData.card_id));
+      formData.append('duration_seconds', String(logData.duration_seconds));
+      if (logData.pain_level !== undefined && logData.pain_level !== null) {
+        formData.append('pain_level', String(logData.pain_level));
+      }
+      if (logData.patient_notes) {
+        formData.append('patient_notes', logData.patient_notes);
+      }
+      // Il nome del parametro 'photo_file' DEVE combaciare con upload.single('photo_file')
+      formData.append('photo_file', logData.photo_file, 'diary.jpg');
+      
+      console.log("FormData photo_file pronto:", !!formData.get('photo_file'));
+      return this.http.post(`${this.baseUrl}/session-logs`, formData);
+    } else {
+      // Fallback a JSON se non c'è la foto
+      const payload: any = {
+        card_id: logData.card_id,
+        duration_seconds: logData.duration_seconds,
+        pain_level: logData.pain_level,
+        patient_notes: logData.patient_notes
+      };
+      return this.http.post(`${this.baseUrl}/session-logs`, payload);
+    }
   }
 
   getSessionLogs(): Observable<SessionLogResponse[]> {

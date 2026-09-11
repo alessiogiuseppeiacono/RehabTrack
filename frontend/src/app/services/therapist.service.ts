@@ -41,6 +41,7 @@ export interface PatientLog {
   patient_notes: string | null;
   duration_seconds: number;
   completed_at: string;
+  photo_base64?: string | null;
 }
 
 // TASK-304: payload esercizio — campi matching cardModel.js Exercise.createBulk()

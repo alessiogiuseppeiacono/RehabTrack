@@ -4,15 +4,21 @@ import { FormsModule } from '@angular/forms';
 import {
   IonButton, IonIcon, IonRange, IonTextarea, IonItem, IonLabel, IonNote, IonText
 } from '@ionic/angular';
+  IonButton, IonIcon, IonRange, IonTextarea, IonItem, IonLabel, IonNote, IonText, IonImg
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { playOutline, pauseOutline, stopOutline, sendOutline } from 'ionicons/icons';
+import { playOutline, pauseOutline, stopOutline, sendOutline, cameraOutline, trashOutline } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 // TASK-403: forma del dato emesso al termine della sessione.
 // TASK-404: ora include pain_level (obbligatorio) e patient_notes (opzionale).
+// TASK-502: aggiunta photo_file per inviare l'immagine
 export interface SessionReport {
   duration_seconds: number;
   pain_level: number;
   patient_notes: string;
+  photo_file?: Blob | File;
 }
 
 // Stato aggiunto 'report': il form dolore appare dopo che il timer viene fermato.
@@ -87,6 +93,25 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
             [autoGrow]="true"
             [(ngModel)]="patientNotes"
           ></ion-textarea>
+        </ion-item>
+
+        <!-- Aggiunta Foto (Opzionale) -->
+        <ion-item lines="none" class="report-item photo-section">
+          <div class="photo-container">
+            @if (!photoPreview) {
+              <ion-button fill="outline" color="medium" (click)="takePicture()" class="photo-btn">
+                <ion-icon slot="start" name="camera-outline"></ion-icon>
+                Aggiungi Foto
+              </ion-button>
+            } @else {
+              <div class="preview-wrapper">
+                <ion-img [src]="photoPreview" class="thumbnail"></ion-img>
+                <ion-button fill="clear" color="danger" size="small" (click)="removePhoto()">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            }
+          </div>
         </ion-item>
 
         <!-- Pulsante invio -->
@@ -190,6 +215,28 @@ type TimerState = 'idle' | 'running' | 'paused' | 'report';
     .submit-btn {
       margin-top: 0.75rem;
     }
+    .photo-section {
+      margin-top: 0.5rem;
+    }
+    .photo-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .preview-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .thumbnail {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
   `],
 })
 export class SessionTimerComponent implements OnDestroy {
@@ -209,6 +256,8 @@ export class SessionTimerComponent implements OnDestroy {
   // TASK-404: valori del form report
   painLevel = 5;
   patientNotes = '';
+  photoPreview: string | null = null;
+  photoBlob: Blob | null = null;
 
   get formatted(): string {
     const m = Math.floor(this.elapsed / 60);
@@ -217,7 +266,7 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   constructor() {
-    addIcons({ playOutline, pauseOutline, stopOutline, sendOutline });
+    addIcons({ playOutline, pauseOutline, stopOutline, sendOutline, cameraOutline, trashOutline });
   }
 
   ngOnDestroy(): void {
@@ -254,16 +303,75 @@ export class SessionTimerComponent implements OnDestroy {
   // TODO (TASK-404): Testare visivamente il form del dolore e l'invio del payload non appena il TASK-304 (Compositore Schede) genererà dati reali nello Sprint 3.
   // TASK-404: invio del form — emette il report completo e azzera il componente.
   submitReport(): void {
+    console.log('DEBUG submitSession - photo presente?:', !!this.photoBlob, this.photoBlob);
+    
     this.finished.emit({
       duration_seconds: this.elapsed,
       pain_level: this.painLevel,
       patient_notes: this.patientNotes,
+      photo_file: this.photoBlob || undefined
     });
     // Reset per eventuale nuova sessione
     this.elapsed = 0;
     this.painLevel = 5;
     this.patientNotes = '';
+    this.photoPreview = null;
+    this.photoBlob = null;
     this.state = 'idle';
+    this.cdr.markForCheck();
+  }
+
+  async takePicture(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      this.openFilePicker();
+      return;
+    }
+
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt
+      });
+      
+      if (image.dataUrl) {
+        this.photoPreview = image.dataUrl;
+        this.photoBlob = await this.dataUrlToBlob(image.dataUrl);
+        this.cdr.markForCheck();
+      }
+    } catch (e) {
+      console.warn('Camera fallita o annullata', e);
+      this.openFilePicker();
+    }
+  }
+
+  private async dataUrlToBlob(dataUrl: string): Promise<Blob> {
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  }
+
+  private openFilePicker(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      this.photoBlob = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.photoPreview = reader.result as string;
+        this.cdr.markForCheck();
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  removePhoto(): void {
+    this.photoPreview = null;
+    this.photoBlob = null;
     this.cdr.markForCheck();
   }
 

@@ -46,6 +46,9 @@ async function getTodayCard(req, res) {
  */
 async function saveSessionLog(req, res) {
   const { card_id, pain_level, patient_notes, duration_seconds } = req.body;
+  
+  console.log("saveSessionLog - File ricevuto da multer:", req.file);
+  console.log("saveSessionLog - Body ricevuto:", req.body);
 
   if (!card_id) {
     return res.status(400).json({ error: 'Campo obbligatorio: card_id' });
@@ -70,12 +73,15 @@ async function saveSessionLog(req, res) {
     return res.status(403).json({ error: 'Scheda non associata al paziente autenticato' });
   }
 
+  // Percorso file se caricato (URL relativo per il frontend)
+  const photoUrl = req.file ? `/uploads/diaries/${req.file.filename}` : null;
+
   // TASK-403: log con durata della sessione dal timer (pain_level può mancare)
   const id = await new Promise((resolve, reject) => {
     db.run(
-      `INSERT INTO session_logs (card_id, patient_id, pain_level, patient_notes, duration_seconds)
-       VALUES (?, ?, ?, ?, ?)`,
-      [card_id, req.user.id, parsedPainLevel ?? null, patient_notes || '', parsedDuration ?? 0],
+      `INSERT INTO session_logs (card_id, patient_id, pain_level, patient_notes, duration_seconds, photo_base64)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [card_id, req.user.id, parsedPainLevel ?? null, patient_notes || '', parsedDuration ?? 0, photoUrl],
       function (err) {
         if (err) return reject(err);
         resolve(this.lastID);
@@ -83,7 +89,7 @@ async function saveSessionLog(req, res) {
     );
   });
 
-  res.status(201).json({ id, card_id, pain_level: parsedPainLevel ?? null, patient_notes: patient_notes || '', duration_seconds: parsedDuration ?? 0 });
+  res.status(201).json({ id, card_id, pain_level: parsedPainLevel ?? null, patient_notes: patient_notes || '', duration_seconds: parsedDuration ?? 0, photo_url: photoUrl });
 }
 
 async function getSessionLogs(req, res) {

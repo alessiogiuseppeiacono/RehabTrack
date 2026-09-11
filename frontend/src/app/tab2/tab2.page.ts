@@ -1,7 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { ViewWillEnter } from '@ionic/angular';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
   IonGrid, IonRow, IonCol, IonImg,
   IonFab, IonFabButton, IonIcon,
   IonButton, IonModal, IonSegment, IonSegmentButton, IonLabel,
@@ -10,11 +10,13 @@ import {
   IonSearchbar, IonChip
 } from '@ionic/angular';
 import { CommonModule, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { addIcons } from 'ionicons';
-import { camera, trashOutline, closeOutline, documentTextOutline, searchOutline } from 'ionicons/icons';
+import { camera, trashOutline, closeOutline, documentTextOutline, searchOutline, logOutOutline } from 'ionicons/icons';
 import { PatientService, SessionLogResponse } from '../services/patient.service';
+import { AuthService } from '../services/auth.service';
 import { finalize } from 'rxjs';
 
 // TASK-502: chiave localStorage per la persistenza della galleria posturale
@@ -27,7 +29,7 @@ const STORAGE_KEY = 'rehabtrack_photos';
   styleUrls: ['tab2.page.scss'],
   imports: [
     CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonContent,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
     IonGrid, IonRow, IonCol, IonImg,
     IonFab, IonFabButton, IonIcon,
     IonButton, IonModal, IonSegment, IonSegmentButton, IonLabel,
@@ -38,6 +40,8 @@ const STORAGE_KEY = 'rehabtrack_photos';
   providers: [DatePipe]
 })
 export class Tab2Page implements OnInit, ViewWillEnter {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   currentSegment: 'sessions' | 'photos' = 'sessions';
   allSessionLogs: SessionLogResponse[] = [];
@@ -58,7 +62,7 @@ export class Tab2Page implements OnInit, ViewWillEnter {
     private patientService: PatientService
   ) {
     // TASK-502: 'camera' (solid) usato nel FAB per massima visibilità
-    addIcons({ camera, trashOutline, closeOutline, documentTextOutline, searchOutline });
+    addIcons({ camera, trashOutline, closeOutline, documentTextOutline, searchOutline, logOutOutline });
   }
 
   // TASK-502: ricarica la galleria dal localStorage all'inizializzazione
@@ -226,5 +230,10 @@ export class Tab2Page implements OnInit, ViewWillEnter {
   // TASK-502: salva l'array aggiornato in localStorage
   private persist(): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.photos));
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

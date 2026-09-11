@@ -25,6 +25,14 @@ export const httpIntInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }
 
+  // TASK: Previene "TypeError: Failed to construct 'URL': Invalid base URL" su dispositivi mobili
+  try {
+    // Prova a parsarlo come URL assoluto. Se fallisce, usa il fallback
+    new URL(url);
+  } catch (err) {
+    url = 'http://localhost:3000' + (url.startsWith('/') ? url : '/' + url);
+  }
+
   const cloned = req.clone({
     url,
     ...(token ? { setHeaders: { Authorization: `Bearer ${token}` } } : {}),

@@ -1,8 +1,9 @@
 import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
   IonItem, IonLabel, IonNote,
   IonSpinner, IonIcon, IonText,
   IonButton, IonRange, IonTextarea, IonBadge, AlertController
@@ -13,9 +14,12 @@ import {
   barbellOutline, timerOutline, repeatOutline,
   documentTextOutline, fitnessOutline, alertCircleOutline,
   playOutline, pauseOutline, stopOutline, sendOutline, checkmarkCircleOutline,
-  playForwardOutline
+  playForwardOutline, logOutOutline, cameraOutline, trashOutline
 } from 'ionicons/icons';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { PatientService, Card, Exercise } from '../services/patient.service';
+import { AuthService } from '../services/auth.service';
 
 type WorkoutState = 'overview' | 'prepare' | 'exercise' | 'rest' | 'feedback' | 'completed';
 
@@ -25,11 +29,12 @@ type WorkoutState = 'overview' | 'prepare' | 'exercise' | 'rest' | 'feedback' | 
   styleUrls: ['tab1.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule,
+    FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonItem, IonLabel, IonNote,
-    IonSpinner, IonIcon, IonText,
-    IonButton, IonRange, IonTextarea, IonBadge
+    IonButton, IonButtons, IonIcon, IonBadge, IonRange, IonTextarea,
+    IonSpinner, IonText
   ],
 })
 export class Tab1Page implements OnInit, OnDestroy {
@@ -37,6 +42,8 @@ export class Tab1Page implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly ngZone = inject(NgZone);
   private readonly alertCtrl = inject(AlertController);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   card: Card | null = null;
   exercises: Exercise[] = [];
@@ -57,6 +64,8 @@ export class Tab1Page implements OnInit, OnDestroy {
   // Feedback form
   painLevel = 5;
   patientNotes = '';
+  photoPreview: string | null = null;
+  photoBlob: Blob | null = null;
   sessionLogState: 'idle' | 'saving' | 'saved' | 'error' = 'idle';
   isEarlyExit = false;
 
@@ -65,7 +74,7 @@ export class Tab1Page implements OnInit, OnDestroy {
       barbellOutline, timerOutline, repeatOutline,
       documentTextOutline, fitnessOutline, alertCircleOutline,
       playOutline, pauseOutline, stopOutline, sendOutline, checkmarkCircleOutline,
-      playForwardOutline
+      playForwardOutline, logOutOutline, cameraOutline, trashOutline
     });
   }
 
@@ -165,6 +174,8 @@ export class Tab1Page implements OnInit, OnDestroy {
     this.totalElapsedSeconds = 0;
     this.painLevel = 5;
     this.patientNotes = '';
+    this.photoPreview = null;
+    this.photoBlob = null;
     this.sessionLogState = 'idle';
     this.isEarlyExit = false;
     this.startGlobalTimer();
@@ -300,11 +311,15 @@ export class Tab1Page implements OnInit, OnDestroy {
   submitFeedback(): void {
     if (!this.card) return;
     this.sessionLogState = 'saving';
+    
+    console.log('DEBUG submitSession - photo presente?:', !!this.photoBlob, this.photoBlob);
+    
     this.patientService.saveSessionLog({
       card_id: this.card.id,
       duration_seconds: this.totalElapsedSeconds,
       pain_level: this.painLevel,
       patient_notes: this.patientNotes,
+      photo_file: this.photoBlob || undefined
     }).subscribe({
       next: () => {
         this.sessionLogState = 'saved';
@@ -321,8 +336,67 @@ export class Tab1Page implements OnInit, OnDestroy {
     });
   }
 
+  async takePicture(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      this.openFilePicker();
+      return;
+    }
+
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt
+      });
+      
+      if (image.dataUrl) {
+        this.photoPreview = image.dataUrl;
+        this.photoBlob = await this.dataUrlToBlob(image.dataUrl);
+        this.cdr.markForCheck();
+      }
+    } catch (e) {
+      console.warn('Camera fallita o annullata', e);
+      this.openFilePicker();
+    }
+  }
+
+  private async dataUrlToBlob(dataUrl: string): Promise<Blob> {
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  }
+
+  private openFilePicker(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      this.photoBlob = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.photoPreview = reader.result as string;
+        this.cdr.markForCheck();
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  removePhoto(): void {
+    this.photoPreview = null;
+    this.photoBlob = null;
+    this.cdr.markForCheck();
+  }
+
   resetToOverview(): void {
     this.workoutState = 'overview';
     this.cdr.markForCheck();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

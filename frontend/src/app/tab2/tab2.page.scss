@@ -27,7 +27,30 @@
   padding: 0.5rem;
 }
 
-// TASK-502: card foto quadrata con overflow hidden per il bordo arrotondato
+.session-photo {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
+  
+  strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.log-photo {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+// Fine stili galleria foto quadrata con overflow hidden per il bordo arrotondato
 .photo-card {
   position: relative;
   aspect-ratio: 1 / 1;
